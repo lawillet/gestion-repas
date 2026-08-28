@@ -1,0 +1,120 @@
+'use client';
+// gestion des erreurs 
+import { authenticate, inscription } from '@/actions/auth';
+import { Button } from '@/components/ui/button';
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldSet,
+} from "@/components/ui/field"
+import { Input } from '@/components/ui/input';
+import { FieldError } from '@base-ui/react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { loginSchema } from '../../schema/auth.schema';
+import Link from 'next/link';
+
+export default function Auth() {
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+
+  const router = useRouter();
+
+  const onSubmit = async ({ email, password }: z.infer<typeof loginSchema>) => {
+    setIsAuthenticating(true);
+
+    try {
+      await authenticate({ email, password });
+      router.push('/user'); 
+    } catch (error) {
+      form.setError('email', { type: 'manual', message: error instanceof Error ? error.message : 'Une erreur est survenue' });
+      form.setError('password', { type: 'manual', message: 'Adresse e-mail ou mot de passe incorrect.' });
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  return (
+    <div className='flex h-svh items-center justify-center'>
+      <div className='mx-auto grid w-[350px] gap-6'>
+        
+          <form onSubmit={form.handleSubmit(onSubmit)} className='grid gap-4'>
+            <FieldSet>
+            <Controller
+              control={form.control} 
+              name='email'
+              render={({ field, fieldState }) => (
+                <Field className='grid gap-2' data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor='email'>Email</FieldLabel>
+                  <Input
+                    id='email'
+                    type='email'
+                    placeholder='m@example.com'
+                    aria-invalid={fieldState.invalid} 
+                    {...field}
+                    disabled={isAuthenticating}
+                  />
+                  
+                  {fieldState.error?.message && (
+                    <p className='text-sm text-red-600' role='alert'>
+                      {fieldState.error.message}
+                    </p>
+                  )}
+                </Field>
+              )}
+            />
+            <Controller
+              control={form.control}
+              name='password'
+              render={({ field, fieldState }) => (
+                <Field className='grid gap-2' data-invalid={fieldState.invalid}>
+                  <div className='flex items-center'>
+                    <FieldLabel htmlFor='password'>Mot de passe</FieldLabel>
+                  </div>
+                    <Input
+                      disabled={isAuthenticating}
+                      id='password'
+                      type='password'
+                      aria-invalid={fieldState.invalid} 
+                      {...field}
+                    />
+                  {fieldState.error?.message && (
+                    <p className='text-sm text-red-600' role='alert'>
+                      {fieldState.error.message}
+                    </p>
+                  )}
+                </Field>
+              )}
+            />
+            <Button
+              disabled={isAuthenticating}
+              type='submit'
+              className='w-full'
+            >
+              Se connecter
+            </Button>
+            
+            </FieldSet>
+          </form>
+          <Link href="/auth/inscription" className="text-sm text-blue-600 text-center hover:underline">
+            Inscription
+          </Link>
+          <Link href="/auth/password" className="text-sm text-blue-600 text-center hover:underline">
+            J&apos;ai oublié mon mot de passe
+          </Link>
+      </div>
+    </div>
+  );
+}
