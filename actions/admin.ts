@@ -2,6 +2,7 @@
 import { inscriptionSchemaServer } from "@/schema/auth.schema";
 import { createClient } from "@/lib/supabase/server";
 import { ADMIN } from "@/constants/constants";
+import { updateRecord } from "@/actions/crud";
 
 // create user with admin right
 export const signupAdmin = async (inscription: inscriptionSchemaServer) => {
@@ -41,3 +42,18 @@ export const signupAdmin = async (inscription: inscriptionSchemaServer) => {
     throw error;
   }
 }
+
+// update price
+export const updatePrice = async (
+  id: number,
+  price: number,
+  portion: "primary" | "preschool",
+  type: "soup" | "meal",
+) => {
+  return await updateRecord('meal', id, {
+    price,
+    portion,
+    type,
+  });
+}
+

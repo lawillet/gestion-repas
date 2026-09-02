@@ -17,7 +17,7 @@ const fontMono = Geist_Mono({
 
 
 export const metadata: Metadata = {
-  title: "gestion repas",
+  title: "Gestion repas",
   description: "réserver et payer les repas de votre enfant"
 }
 

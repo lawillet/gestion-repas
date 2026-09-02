@@ -149,7 +149,6 @@ async function handleCheckoutCompleted(
     status: true,
   }));
 
-  // Stripe peut relivrer un même événement. Les lignes déjà créées sont donc
   // ignorées, ce qui rend le webhook idempotent.
   const { data: existingReservations, error: existingReservationsError } =
     await supabaseAdmin

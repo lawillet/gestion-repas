@@ -33,6 +33,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
 import { createClient } from '@/lib/supabase/client';
+import Image from 'next/image';
 
 const NAV_LINKS = [
   { href: '/admin/addadmin', label: 'Ajouter Admin' },
@@ -61,7 +62,13 @@ export const Header = () => {
           href='/admin'
           className='flex items-center gap-2 text-lg font-semibold md:text-base'
         >
-          <Package2 className='h-6 w-6' />
+          <Image
+            src='/Cerfontaine_logo.svg'
+            alt='Le logo de la ville de Cerfontaine'
+            width={50}
+            height={50}
+            className='h-20 w-20 object-contain'
+          />
         </Link>
         {NAV_LINKS.map(({ href, label }) => (
           <Link
@@ -93,7 +100,13 @@ export const Header = () => {
               href='/'
               className='flex items-center gap-2 text-lg font-semibold'
             >
-              <Package2 className='h-6 w-6' />
+            <Image
+              src='/Cerfontaine_logo.svg'
+              alt='Le logo de la ville de Cerfontaine'
+              width={50}
+              height={50}
+              className='h-20 w-20 object-contain pt-4'
+            />
             </Link>
             {NAV_LINKS.map(({ href, label }) => (
               <Link
@@ -112,12 +125,6 @@ export const Header = () => {
       <div className='flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4'>
         <form className='ml-auto flex-1 sm:flex-initial'>
           <div className='relative'>
-            <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
-            <Input
-              type='search'
-              placeholder='Search products...'
-              className='pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]'
-            />
           </div>
         </form>
         <DropdownMenu>
@@ -131,7 +138,7 @@ export const Header = () => {
           />
           <DropdownMenuContent align='end'>
             <DropdownMenuGroup>
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setTheme('light')}>
@@ -142,14 +149,10 @@ export const Header = () => {
           <Moon  />
           Sombre
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}>
-          <SettingsIcon />
-          Settings
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={handleLogout}>
           <LogOutIcon />
-          Log out
+          Se déconnecter
         </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

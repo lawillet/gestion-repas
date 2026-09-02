@@ -5,9 +5,9 @@ import { createColumnHelper } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 
 import { type DataTableFeatures } from "@/components/data-table-features"
+import Link from "next/link"
 
 // This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
 export type Meal = {
   type: string,
   portion: string,
@@ -32,7 +32,7 @@ export const columns = columnHelper.columns([
     id: "actions",
     header: "Action",
     cell: ({ row }) => (
-      <Button key={row.original.id} variant="outline" size="sm">
+      <Button key={row.original.id} nativeButton={false} variant="outline" size="sm" render={<Link href={`/admin/price/${row.original.id}`} />}>
         Modifier
       </Button>
     ),
