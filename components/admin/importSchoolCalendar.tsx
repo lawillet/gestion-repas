@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 export default function ImportSchoolCalendar() {
     // decalre a type for blocked days
     type BlockedDay = {
-        blocked_date: string;
-        reason: string;
+      blocked_date: string;
+      reason: string;
     };
   const [preview, setPreview] = useState<BlockedDay[]>([]);
   const [loading, setLoading] = useState(false);
@@ -43,6 +43,18 @@ export default function ImportSchoolCalendar() {
       setLoading(false);
     }
   }
+  // Merge duplicate blocked days by combining their reasons utiliser 2x en faire une fonction
+  const mergedDays = Array.from(
+    preview.reduce((map, day) => {
+      const existing = map.get(day.blocked_date);
+    if (existing) {
+      existing.reason = `${existing.reason} / ${day.reason}`;
+    } else {
+      map.set(day.blocked_date, { ...day });
+    }
+    return map;
+  }, new Map())
+  ).map(([, value]) => value);
 
   return (
     <Card>
@@ -61,20 +73,21 @@ export default function ImportSchoolCalendar() {
           }}
         />
 
-        {preview.length > 0 && (
+        {mergedDays.length > 0 && (
           <>
-            <p>{preview.length} jours seront ajoutés.</p>
+            <p>{mergedDays.length} jours seront ajoutés.</p>
 
             <div className="max-h-60 overflow-y-auto border rounded-md p-3">
-              {preview.slice(0, 20).map((day) => (
+              {mergedDays.slice(0, 100).map((day) => (
+                
                 <div key={day.blocked_date}>
                   {day.blocked_date} — {day.reason}
                 </div>
               ))}
 
-              {preview.length > 20 && (
+              {/* {preview.length > 20 && (
                 <p>... {preview.length - 20} autres jours.</p>
-              )}
+              )*/}
             </div>
 
             <Button onClick={handleImport} disabled={loading}>

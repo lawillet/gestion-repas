@@ -4,7 +4,6 @@ import { Calendar } from "@/components/ui/calendar"
 import { fr } from 'date-fns/locale';
 import { addDays, format, isAfter, isBefore, isSameDay, startOfDay } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import {createRecord, getRecordById} from "@/actions/crud";
 import {
   Field,
   FieldDescription,
@@ -13,9 +12,9 @@ import {
   FieldSet,
 } from "@/components/ui/field"
 import { Input } from '@/components/ui/input';
-
-
-
+import { blockedDays } from '@/actions/blocked-day';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface CalendarComponentProps {
     titre: string;
@@ -23,23 +22,13 @@ interface CalendarComponentProps {
     disabledList: object; 
 }
 
-const handleValidate = async (dates: Date[] ) => {
-    dates.forEach(async (date) => {
-        const existingRecord = await getRecordById('blocked_day',date, 'blocked_date')
-        console.log(existingRecord?.blocked_date)
-        if (existingRecord){
-            return console.log('la date est déjà bloqué');
-        }
-       await createRecord('blocked_day', { blocked_date: date.toISOString() });
-        // TODO return a message to user the block days is correctly blocked*/
-    });
-
-}
-
-
 const CalendarComponent = ({ titre, disabledDates, disabledList }: CalendarComponentProps) => {
-    const [dates, setDates] = React.useState<Date[]>([]);
+    const [dates, setDates] = useState<Date[]>([]);
+    const [reasons, setReasons] = useState<string[]>([]);
+    const [validationMessage, setValidationMessage] = useState<boolean>(false);
     //const [validationMessage, setValidationMessage] = React.useState<boolean>(false);
+    const router = useRouter();
+
     const timeZone = React.useMemo(
         () => Intl.DateTimeFormat().resolvedOptions().timeZone,
         []
@@ -53,20 +42,28 @@ const CalendarComponent = ({ titre, disabledDates, disabledList }: CalendarCompo
         const selectedDay = startOfDay(date);
         return isBefore(selectedDay, minSelectableDate) || isAfter(selectedDay, maxSelectableDate);
     };
+
+    const handleValidate = async (dates: string[], reasons: string[]) => {
+        await blockedDays(dates, reasons);
+        router.refresh();
+        //setValidationMessage(true);
+    }
    
     return (
-        <div className='flex-column align-item'>
-            <h1 className='text-3xl'>{titre}</h1>
+        <div className='flex-column items-center justify-center'>
+            <h1 className='text-3xl text-center'>{titre}</h1>
 
             <Calendar
                 mode="multiple"
                 selected={dates}
+                startMonth={new Date(2026, 7)}
+                endMonth={new Date(2027, 7)}
                 onSelect={(nextDates) => setDates(nextDates ?? [])}
                 className="rounded-lg border"
                 captionLayout="dropdown"
                 timeZone={timeZone}
                 disabled={(date) =>
-                    isOutsideAllowedRange(date) ||
+                    /*isOutsideAllowedRange(date) ||*/
                     dayOfWeekIsDisabled(date) ||
                     disabledDates.some((disabledDate) => isSameDay(date, disabledDate))
                 }
@@ -80,13 +77,33 @@ const CalendarComponent = ({ titre, disabledDates, disabledList }: CalendarCompo
                     {format(date, 'PPP')} jour désactiver 
                     <Field>
                         <FieldLabel htmlFor='reason'></FieldLabel>
-                        <Input id="reason" type="text" />
+                        <Input 
+                            id="reason" 
+                            type="text"
+                            placeholder="Raison du blocage"
+                            value={reasons[index] || ''}
+                            onChange={(e) => { 
+                                const newReasons = [...reasons];
+                                newReasons[index] = e.target.value;
+                                setReasons(newReasons);
+                            }}
+                        />
                     </Field>
                 </li>
               )) }
               
             </ul>
-            <Button onClick={() => handleValidate(dates)}>Valider</Button>
+            <form>
+                <Button 
+                    type="button"
+                    onClick=
+                        {
+                            () => handleValidate(dates.map((date) => format(date, 'yyyy-MM-dd')), reasons)
+                        }
+                >
+                    Valider
+                </Button>
+            </form>
         </div>
     )
 }
