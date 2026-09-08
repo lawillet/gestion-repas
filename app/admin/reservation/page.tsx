@@ -1,4 +1,5 @@
-import { addDays, 
+import { 
+  addDays, 
   addMonths, 
   endOfMonth, 
   endOfWeek, 
@@ -13,8 +14,16 @@ import { CalendarDays } from 'lucide-react'
 import { getAllRecords } from '@/actions/crud'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table'
 import ReservationFilters from './reservation-filters'
+import Link from 'next/link'
 
 type ReservationPageProps = { searchParams: 
   Promise<Record<string, 
@@ -226,6 +235,12 @@ export default async function Reservation({ searchParams }: ReservationPageProps
         })}</TableBody>
       </Table>}</CardContent>
     </Card>
+    <a
+      href='/api/admin/export-reservations'
+      className='inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs transition-colors hover:bg-primary/90'
+    >
+      Exporter les réservations
+    </a>
   </main>
   )
 }

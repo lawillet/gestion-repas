@@ -41,6 +41,8 @@ const NAV_LINKS = [
   { href: '/admin/disabledday', label: 'Bloquer Réservation' },
   { href: '/admin/price', label: 'Prix' },
   { href: '/admin/reservation', label: 'Réservations' },
+  { href: '/admin/schoolingYear', label: 'Année Scolaire' },
+
 
 ];
 

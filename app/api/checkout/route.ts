@@ -2,6 +2,7 @@ import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { reservationSchema } from "@/schema/reservation.schema";
+import { getReservationPeriod } from "@/lib/reservation-period";
 
 export async function POST(req: Request) {
 
@@ -41,6 +42,32 @@ export async function POST(req: Request) {
   if (childError || !child) {
     return NextResponse.json({ error: "Enfant introuvable." }, { status: 400 });
   }
+  // Check if there are existing reservations for the child within the 15-day period
+  const period = getReservationPeriod(new Date(reservations[0].date));
+  const { data: existingReservation, error: reservationError } = await supabase
+    .from("reservation")
+    .select("id")
+    .eq("id_child", childId)
+    .gte("date", period.start)
+    .lte("date", period.end)
+    .limit(1);
+
+  if (reservationError) {
+    return NextResponse.json(
+      { error: "Impossible de vérifier les réservations existantes." },
+      { status: 500 },
+    );
+  }
+
+  if (existingReservation.length > 0) {
+    return NextResponse.json(
+      {
+        error:
+          "Une commande existe déjà pour cet enfant durant cette période de 15 jours.",
+      },
+      { status: 409 },
+    );
+  }
 
   const mealIds = [...new Set(reservations.map(({ meal_id }) => meal_id))];
   const { data: meals, error: mealsError } = await supabase
@@ -70,6 +97,12 @@ export async function POST(req: Request) {
   });
 
   const origin = new URL(req.url).origin;
+
+  const metadataReservations = JSON.stringify(
+    reservations.map(({ date, meal_id }) => ({ d: date, m: meal_id })),
+  );
+  console.log("metadataReservations: ", metadataReservations.length);
+
   const session =
     await stripe.checkout.sessions.create({
       mode: "payment",
@@ -85,7 +118,7 @@ export async function POST(req: Request) {
       metadata: {
         parent_id: child.parent,
         child_id: String(childId),
-        reservations: JSON.stringify(reservations),
+        reservations: metadataReservations,
       },
     });
 

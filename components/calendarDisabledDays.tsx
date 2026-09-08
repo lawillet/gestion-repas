@@ -33,9 +33,20 @@ const CalendarComponent = ({ titre, disabledDates, disabledList }: CalendarCompo
         () => Intl.DateTimeFormat().resolvedOptions().timeZone,
         []
     );
-
+    // TODO need to change the value
     const minSelectableDate = addDays(startOfDay(new Date()), 1);
     const maxSelectableDate = addDays(startOfDay(new Date()), 30);
+
+    // Make the calendar start in August of the current year if the current month is August or later, 
+    // otherwise start in August of the previous year. 
+    // The calendar should end in August of the next year.
+    const currentDate = new Date();
+    const calendarStartYear =
+        currentDate.getMonth() >= 7
+            ? currentDate.getFullYear()
+            : currentDate.getFullYear() - 1;
+    const calendarStartMonth = new Date(calendarStartYear, 7);
+    const calendarEndMonth = new Date(calendarStartYear + 1, 7);
 
     const dayOfWeekIsDisabled = (date: Date) => [0, 6, 3].includes(date.getDay());
     const isOutsideAllowedRange = (date: Date) => {
@@ -56,8 +67,8 @@ const CalendarComponent = ({ titre, disabledDates, disabledList }: CalendarCompo
             <Calendar
                 mode="multiple"
                 selected={dates}
-                startMonth={new Date(2026, 7)}
-                endMonth={new Date(2027, 7)}
+                startMonth={calendarStartMonth}
+                endMonth={calendarEndMonth}
                 onSelect={(nextDates) => setDates(nextDates ?? [])}
                 className="rounded-lg border"
                 captionLayout="dropdown"
@@ -87,6 +98,7 @@ const CalendarComponent = ({ titre, disabledDates, disabledList }: CalendarCompo
                                 newReasons[index] = e.target.value;
                                 setReasons(newReasons);
                             }}
+                            
                         />
                     </Field>
                 </li>

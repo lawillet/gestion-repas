@@ -1,3 +1,4 @@
+
 import Stripe from "stripe";
 import { headers } from "next/headers";
 
@@ -5,6 +6,7 @@ import { stripe } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createReservation } from "@/actions/reservation";
 import { reservationSchema } from "@/schema/reservation.schema";
+import { getReservationPeriod } from "@/lib/reservation-period";
 
 export async function GET(req: Request) {
   const sessionId = new URL(req.url).searchParams.get("session_id");
@@ -96,12 +98,41 @@ async function handleCheckoutCompleted(
     throw new Error("Identifiant enfant invalide.");
   }
 
-  let reservations: unknown;
+  let reservations: unknown = session.metadata?.reservations;
 
   try {
     reservations = JSON.parse(session.metadata?.reservations ?? "[]");
+    const rawReservations = session.metadata?.reservations ?? "[]";
+    if (rawReservations.length > 500) {
+      return Response.json(
+        {
+          error:
+            "La réservation est trop volumineuse pour être transmise à Stripe.",
+        },
+        { status: 400 }
+      );
+}
   } catch {
     throw new Error("Réservations invalides.");
+  }
+  // Convert reservations to the expected format if they are in a different structure
+  if (Array.isArray(reservations)) {
+    reservations = reservations.map((reservation) => {
+      if (
+        reservation &&
+        typeof reservation === "object" &&
+        "d" in reservation &&
+        "m" in reservation
+      ) {
+        return {
+          date: reservation.d,
+          meal_id: reservation.m,
+          id_child: childIdNumber,
+        };
+      }
+
+      return reservation;
+    });
   }
 
   const reservationsResult = reservationSchema.array().safeParse(reservations);
@@ -140,6 +171,24 @@ async function handleCheckoutCompleted(
 
   if ((blockedDays ?? []).length > 0) {
     throw new Error("Jour bloqué.");
+  }
+
+  const period = getReservationPeriod(new Date(reservationsToInsert[0].date));
+  const { data: existingReservation, error: reservationError } =
+    await supabaseAdmin
+      .from("reservation")
+      .select("id")
+      .eq("id_child", childIdNumber)
+      .gte("date", period.start)
+      .lte("date", period.end)
+      .limit(1);
+
+  if (reservationError) {
+    throw reservationError;
+  }
+
+  if (existingReservation.length > 0) {
+    return;
   }
 
   // Préparer les réservations

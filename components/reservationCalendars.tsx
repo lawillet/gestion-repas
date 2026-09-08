@@ -48,8 +48,14 @@ const ReservationCalendars = ({
             meal_id: hotMealId 
     }))]; 
     const validation = reservationSchema.array().safeParse(reservations); 
-    if (!validation.success) { setErrorMessage('Les données de réservation sont invalides.'); return } 
+
+    if (!validation.success) { 
+        setErrorMessage('Les données de réservation sont invalides.');
+        return 
+    } 
+
     setIsSubmitting(true); 
+
     try { 
         const response = await fetch('/api/checkout', 
             { 
@@ -57,9 +63,14 @@ const ReservationCalendars = ({
                 headers: { 'Content-Type': 'application/json' }, 
                 body: JSON.stringify({ reservations: validation.data, total }) 
             }); 
-        if (!response.ok) throw new Error('Impossible de créer la session Stripe.');
+
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => null);
+            throw new Error(errorBody?.error ?? 'Impossible de créer la session Stripe.');
+        }
         const { url } = await response.json(); 
         window.location.href = url 
+        
     } catch (error) { 
         setErrorMessage(error instanceof Error ? error.message : 'Une erreur est survenue.') 
     } finally { setIsSubmitting(false) } }
@@ -143,7 +154,9 @@ const ReservationCalendars = ({
                 <ul className='mt-2 flex flex-wrap gap-1.5'>
                     {hotMealDates.map((date) => 
                         <li key={date.toISOString()}>
-                            <Badge variant='secondary'>{format(date, 'd MMM', { locale: fr })}</Badge>
+                            <Badge variant='secondary'>
+                                {format(date, 'd MMM', { locale: fr })}
+                            </Badge>
                         </li>)}
                 </ul>
             </div>

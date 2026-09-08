@@ -1,5 +1,4 @@
 'use client'
-import React from 'react'
 import { Calendar } from '@/components/ui/calendar'
 import { Badge } from '@/components/ui/badge'
 import { fr } from 'date-fns/locale'
@@ -13,6 +12,13 @@ import {
   differenceInCalendarDays,
 } from 'date-fns'
 import { CalendarDays, Soup } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { 
+  ANCHOR_RANGE_START, 
+  ANCHOR_RANGE_END, 
+  ANCHOR_COMMAND_DEADLINE, 
+  CYCLE_LENGTH_DAYS 
+} from '@/constants/constants'
 
 // Define the props for the CalendarComponent
 interface CalendarComponentProps {
@@ -22,16 +28,6 @@ interface CalendarComponentProps {
   selectedDates?: Date[]
   onDatesChange?: (dates: Date[]) => void
 }
-
-// --- Paramètres du cycle de réservation ---
-// Un seul "cycle de référence" (le premier), tout le reste est calculé.
-const CYCLE_LENGTH_DAYS = 14
-
-// Cycle de référence n°1 :
-// commande possible jusqu'au 02/09/2026, pour la plage [07/09/2026 - 18/09/2026]
-const ANCHOR_COMMAND_DEADLINE = startOfDay(new Date(2026, 8, 2)) // 02/09/2026
-const ANCHOR_RANGE_START = startOfDay(new Date(2026, 8, 7))      // 07/09/2026
-const ANCHOR_RANGE_END = startOfDay(new Date(2026, 8, 18))       // 18/09/2026
 
 /**
  * Calcule l'index du cycle courant (0 = premier cycle, 1 = deuxième, etc.)
@@ -52,21 +48,21 @@ const CalendarComponent = ({
   selectedDates,
   onDatesChange,
 }: CalendarComponentProps) => {
-  const [internalDates, setInternalDates] = React.useState<Date[]>([])
+  const [internalDates, setInternalDates] = useState<Date[]>([])
   const dates = selectedDates ?? internalDates
   const handleDatesChange = (nextDates: Date[]) => {
     setInternalDates(nextDates)
     onDatesChange?.(nextDates)
   }
 
-  const timeZone = React.useMemo(
+  const timeZone = useMemo(
     () => Intl.DateTimeFormat().resolvedOptions().timeZone,
     []
   )
 
   // On calcule le cycle actuel une seule fois par rendu (dépend du jour courant)
-  const { commandDeadline, minSelectableDate, maxSelectableDate } = React.useMemo(() => {
-    const cycleIndex = getCurrentCycleIndex(new Date(2026, 8, 17))
+  const { commandDeadline, minSelectableDate, maxSelectableDate } = useMemo(() => {
+    const cycleIndex = getCurrentCycleIndex(new Date())
     const offset = cycleIndex * CYCLE_LENGTH_DAYS
 
     return {

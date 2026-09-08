@@ -1,7 +1,7 @@
 'use server'
 import { inscriptionSchemaServer, loginSchemaServer, passwordResetSchema, updatePasswordSchema } from '@/schema/auth.schema'
 import { createClient } from "@/lib/supabase/server"
-import { ADMIN } from '@/constants/constants'
+
 
 // validation du login côté serveur
 export const authenticate = async (login: loginSchemaServer) => {

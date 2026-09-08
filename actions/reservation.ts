@@ -5,6 +5,28 @@ import { createClient } from '@/lib/supabase/server';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { reservationSchema, type ReservationInsert } from '@/schema/reservation.schema';
 
+// Check if a child has any reservations within a given period.
+export async function hasReservationForPeriod(
+  childId: number,
+  start: string,
+  end: string
+) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("reservation")
+    .select("id")
+    .eq("id_child", childId)
+    .gte("date", start)
+    .lte("date", end)
+    .limit(1);
+
+  if (error) throw error;
+
+  return data.length > 0;
+}
+
+
 export const createReservation = async (
   reservations: ReservationInsert[],
   supabaseClient?: SupabaseClient<Database>,
@@ -36,6 +58,9 @@ export const createReservation = async (
   return data;
 };
 
+// createReservations function validates the reservations, checks for duplicates, 
+// and ensures that the user is authenticated and authorized to make the reservations. 
+// It then calls createReservation to insert the validated reservations into the database.
 export const createReservations = async (reservations: ReservationInsert[]) => {
   const validatedReservations = reservationSchema.array().parse(reservations);
   const supabase = await createClient();
@@ -87,3 +112,4 @@ export const createReservations = async (reservations: ReservationInsert[]) => {
 
   return createReservation(validatedReservations, supabase);
 };
+
