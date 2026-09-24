@@ -2,7 +2,14 @@
 import ReservationCalendars from '@/components/reservationCalendars';
 import { getAllRecords, getRecordById } from '@/actions/crud';
 import { parseISO } from 'date-fns';
-
+import { notFound } from 'next/navigation';
+import {
+    getCurrentCycleIndex,
+    getEndYear,
+    getFirstReservation,
+    getFristCommand,
+    getReservationPeriodsUntil,
+} from '@/constants/constants';
 type PageProps = {
   params: Promise<{
     slug: string;
@@ -11,7 +18,13 @@ type PageProps = {
 
 const Reservation = async ({ params }: PageProps) => {
     const { slug } = await params;
-    const child = await getRecordById('child', slug);
+    const childId = Number(slug);
+
+    if (!Number.isSafeInteger(childId) || childId < 1) {
+        notFound();
+    }
+
+    const child = await getRecordById('child', childId);
     if (!child) {
         return <div>Enfant introuvable.</div>;
     }
@@ -34,6 +47,25 @@ const Reservation = async ({ params }: PageProps) => {
     const reservations = (await getAllRecords('reservation'))
         .filter((reservation) => reservation.id_child === child.id);
     const reservedDates = reservations.map((reservation) => parseISO(reservation.date));
+
+    const [endYear, firstReservation, firstCommand] = await Promise.all([
+        getEndYear(),
+        getFirstReservation(),
+        getFristCommand(),
+    ]);
+
+    const periods = await getReservationPeriodsUntil(endYear, dates);
+    const currentCycleIndex = await getCurrentCycleIndex(new Date(), dates);
+    const period = periods[currentCycleIndex] ?? periods.at(-1);
+    const weeks = period?.weeks ?? [{ start: firstReservation, end: firstReservation }];
+
+    const periodData = {
+        commandDeadline: period?.commandDeadline ?? firstCommand,
+        minSelectableDate: weeks[0]?.start ?? firstReservation,
+        maxSelectableDate: weeks[weeks.length - 1]?.end ?? firstReservation,
+        allowedWeeks: weeks,
+    };
+
     return (
         <ReservationCalendars
             childId={child.id}
@@ -44,6 +76,7 @@ const Reservation = async ({ params }: PageProps) => {
             disabledDates={dates}
             reservedDates={reservedDates}
             blockedDays={datas}
+            periodData={periodData}
         />
 
     )

@@ -173,7 +173,7 @@ async function handleCheckoutCompleted(
     throw new Error("Jour bloqué.");
   }
 
-  const period = getReservationPeriod(new Date(reservationsToInsert[0].date));
+  const period = await getReservationPeriod(new Date(reservationsToInsert[0].date));
   const { data: existingReservation, error: reservationError } =
     await supabaseAdmin
       .from("reservation")

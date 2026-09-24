@@ -57,10 +57,16 @@ export default function UpdatePriceForm({ mealId, defaultValues }: UpdatePriceFo
                 type="number"
                 aria-invalid={fieldState.invalid}
                 value={typeof field.value === 'number' ? field.value : ''}
-                onChange={(event) => field.onChange(event.target.value === '' ? '' : Number(event.target.value))}
+                onChange={(event) => 
+                  field.onChange(event.target.value === '' ? '' : Number(event.target.value))}
                 disabled={isUpdating}
               />
-              {fieldState.error?.message && <p className="text-sm text-red-600" role="alert">{fieldState.error.message}</p>}
+              {
+                fieldState.error?.message && 
+                <p className="text-sm text-red-600" role="alert">
+                  {fieldState.error.message}
+                </p>
+              }
             </Field>
           )}
         />
@@ -88,11 +94,16 @@ export default function UpdatePriceForm({ mealId, defaultValues }: UpdatePriceFo
                   <Label htmlFor="preschool">Maternelle</Label>
                 </div>
               </RadioGroup>
-              {fieldState.error?.message && <p className="text-sm text-red-600" role="alert">{fieldState.error.message}</p>}
+              {
+                fieldState.error?.message && 
+                <p className="text-sm text-red-600" role="alert">
+                  {fieldState.error.message}
+                </p>
+              }
             </Field>
           )}
         />
-                <Controller
+        <Controller
           control={form.control}
           name="type"
           render={({ field, fieldState }) => (
@@ -113,16 +124,31 @@ export default function UpdatePriceForm({ mealId, defaultValues }: UpdatePriceFo
                 </div>
                 <div className="flex items-center gap-3">
                   <RadioGroupItem value="meal" id="meal" disabled={isUpdating} />
-                  <Label htmlFor="preschool">Repas chaud</Label>
+                  <Label htmlFor="preschool">
+                    Repas chaud
+                  </Label>
                 </div>
               </RadioGroup>
-              {fieldState.error?.message && <p className="text-sm text-red-600" role="alert">{fieldState.error.message}</p>}
+              {
+                fieldState.error?.message && 
+                <p className="text-sm text-red-600" role="alert">
+                  {fieldState.error.message}
+                </p>
+              }
             </Field>
           )}
         />
         <div className="flex gap-2">
-          <Button type="submit" disabled={isUpdating}>Appliquer les modifications</Button>
-          <Button type="button" variant="outline" onClick={() => router.back()} disabled={isUpdating}>Annuler</Button>
+          <Button type="submit" disabled={isUpdating}>
+            Appliquer les modifications
+          </Button>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => router.back()} disabled={isUpdating}
+          >
+            Annuler
+          </Button>
         </div>
       </form>
     </div>

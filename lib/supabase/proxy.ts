@@ -38,9 +38,27 @@ export async function updateSession(request: NextRequest) {
 
   // IMPORTANT: If you remove getClaims() and you use server-side rendering
   // with the Supabase client, your users may be randomly logged out.
-  const { data } = await supabase.auth.getClaims()
+const { data } = await supabase.auth.getClaims()
 
-  const user = data?.claims
+const user = data?.claims
+// block 24/09/2026
+const isPasswordRecovery =
+request.cookies.get("password_recovery")?.value === "true";
+
+const pathname = request.nextUrl.pathname;
+
+// Pendant la récupération du mot de passe, seules les routes /auth/password/*
+ // sont autorisées.
+if (
+  isPasswordRecovery &&
+  user &&
+  !pathname.startsWith("/auth/password")
+) {
+  const url = request.nextUrl.clone();
+  url.pathname = "/auth/password/reset";
+  return NextResponse.redirect(url);
+}
+// endblock 24/09/2026
 
   if (
     !user &&

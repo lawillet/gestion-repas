@@ -1,5 +1,4 @@
 'use client'
-import React from 'react'
 import { Calendar } from "@/components/ui/calendar"
 import { fr } from 'date-fns/locale';
 import { addDays, format, isAfter, isBefore, isSameDay, startOfDay } from 'date-fns';
@@ -13,8 +12,15 @@ import {
 } from "@/components/ui/field"
 import { Input } from '@/components/ui/input';
 import { blockedDays } from '@/actions/blocked-day';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { CALENDAR_START_MONTH, CALENDAR_END_MONTH } from '@/constants/calendar';
+import {
+    getCurrentCycleIndex,
+    getEndYear,
+    getReservationPeriodsUntil,
+    CYCLE_LENGTH_DAYS,
+} from "@/constants/constants";
 
 interface CalendarComponentProps {
     titre: string;
@@ -25,29 +31,41 @@ interface CalendarComponentProps {
 const CalendarComponent = ({ titre, disabledDates, disabledList }: CalendarComponentProps) => {
     const [dates, setDates] = useState<Date[]>([]);
     const [reasons, setReasons] = useState<string[]>([]);
-    const [validationMessage, setValidationMessage] = useState<boolean>(false);
-    //const [validationMessage, setValidationMessage] = React.useState<boolean>(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [currentCycleStart, setCurrentCycleStart] = useState(new Date());
+    const [maxSelectableDate, setMaxSelectableDate] = useState(new Date());
     const router = useRouter();
 
-    const timeZone = React.useMemo(
+    const timeZone = useMemo(
         () => Intl.DateTimeFormat().resolvedOptions().timeZone,
         []
     );
-    // TODO need to change the value
-    const minSelectableDate = addDays(startOfDay(new Date()), 1);
-    const maxSelectableDate = addDays(startOfDay(new Date()), 30);
 
-    // Make the calendar start in August of the current year if the current month is August or later, 
-    // otherwise start in August of the previous year. 
-    // The calendar should end in August of the next year.
-    const currentDate = new Date();
-    const calendarStartYear =
-        currentDate.getMonth() >= 7
-            ? currentDate.getFullYear()
-            : currentDate.getFullYear() - 1;
-    const calendarStartMonth = new Date(calendarStartYear, 7);
-    const calendarEndMonth = new Date(calendarStartYear + 1, 7);
+    useEffect(() => {
+        let isMounted = true
 
+        async function load() {
+            const endYear = await getEndYear()
+            const nextPeriods = await getReservationPeriodsUntil(endYear)
+            const index = await getCurrentCycleIndex(new Date())
+
+            if (!isMounted) return
+
+            setCurrentCycleStart(nextPeriods[index]?.start ?? new Date())
+            setMaxSelectableDate(endYear)
+        }
+
+        load()
+
+        return () => {
+            isMounted = false
+        }
+    }, [])
+
+    const minSelectableDate = addDays(currentCycleStart, (CYCLE_LENGTH_DAYS - 1));
+    console.log(minSelectableDate)
+    //console.log(index)
+    //console.log(minSelectableDate);
     const dayOfWeekIsDisabled = (date: Date) => [0, 6, 3].includes(date.getDay());
     const isOutsideAllowedRange = (date: Date) => {
         const selectedDay = startOfDay(date);
@@ -55,7 +73,20 @@ const CalendarComponent = ({ titre, disabledDates, disabledList }: CalendarCompo
     };
 
     const handleValidate = async (dates: string[], reasons: string[]) => {
-        await blockedDays(dates, reasons);
+        setSubmitError(null);
+
+        const result = await blockedDays(dates, reasons);
+
+        if (!result.success) {
+            const messages = result.errors.flatMap((error) => {
+                const dateLabel = error.date ? `Date ${error.date}` : 'Entrée';
+                return error.errors.map((message) => `${dateLabel} : ${message}`);
+            });
+
+            setSubmitError(messages.join(' | '));
+            return;
+        }
+
         router.refresh();
         //setValidationMessage(true);
     }
@@ -67,14 +98,14 @@ const CalendarComponent = ({ titre, disabledDates, disabledList }: CalendarCompo
             <Calendar
                 mode="multiple"
                 selected={dates}
-                startMonth={calendarStartMonth}
-                endMonth={calendarEndMonth}
+                startMonth={CALENDAR_START_MONTH}
+                endMonth={CALENDAR_END_MONTH}
                 onSelect={(nextDates) => setDates(nextDates ?? [])}
                 className="rounded-lg border"
                 captionLayout="dropdown"
                 timeZone={timeZone}
                 disabled={(date) =>
-                    /*isOutsideAllowedRange(date) ||*/
+                    isOutsideAllowedRange(date) ||
                     dayOfWeekIsDisabled(date) ||
                     disabledDates.some((disabledDate) => isSameDay(date, disabledDate))
                 }
@@ -105,12 +136,17 @@ const CalendarComponent = ({ titre, disabledDates, disabledList }: CalendarCompo
               )) }
               
             </ul>
+            {submitError && (
+                <p className="mt-3 text-sm text-red-600" role="alert">
+                    {submitError}
+                </p>
+            )}
             <form>
                 <Button 
                     type="button"
                     onClick=
                         {
-                            () => handleValidate(dates.map((date) => format(date, 'yyyy-MM-dd')), reasons)
+                            () => handleValidate(dates.map((date) => format(date,'yyyy-MM-dd')), reasons)
                         }
                 >
                     Valider

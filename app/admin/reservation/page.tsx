@@ -24,6 +24,11 @@ import {
 } from '@/components/ui/table'
 import ReservationFilters from './reservation-filters'
 import Link from 'next/link'
+import {
+  getEndYear,
+  getReservationPeriodsUntil,
+} from '@/constants/constants'
+import { ButtonGroupDropdown } from '@/components/admin/buttonGroupDropdown'
 
 type ReservationPageProps = { searchParams: 
   Promise<Record<string, 
@@ -87,6 +92,9 @@ function getDateRange(period: string, dateFrom?: string, dateTo?: string) {
 }
 
 export default async function Reservation({ searchParams }: ReservationPageProps) {
+  const endYear = await getEndYear()
+  const blockedDates = (await getAllRecords('blocked_day')).map(
+    (row) => new Date(row.blocked_date))
   const params = await searchParams
   const parentParam = getSingleParameter(params.parent)
   const childParam = getSingleParameter(params.child)
@@ -112,6 +120,7 @@ export default async function Reservation({ searchParams }: ReservationPageProps
   const mealById = new Map(meals.map((meal) => [meal.id, meal]))
   const dateRange = getDateRange(selectedPeriod, dateFrom, dateTo)
   const selectedChildId = selectedChild === 'all' ? undefined : Number(selectedChild)
+
   const sortedReservations = reservations.filter((reservation) => {
     const child = childById.get(reservation.id_child)
     const meal = mealById.get(reservation.meal_id)
@@ -235,12 +244,15 @@ export default async function Reservation({ searchParams }: ReservationPageProps
         })}</TableBody>
       </Table>}</CardContent>
     </Card>
-    <a
+    {/*<a
       href='/api/admin/export-reservations'
-      className='inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs transition-colors hover:bg-primary/90'
+      className='inline-flex items-center justify-center rounded-md bg-primary 
+        px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs 
+        transition-colors hover:bg-primary/90'
     >
       Exporter les réservations
-    </a>
+    </a>*/}
+    <ButtonGroupDropdown disabledDate={blockedDates} />
   </main>
   )
 }

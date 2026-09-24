@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import { SubmitEvent, useMemo, useState } from 'react'
 import CalendarComponent from '@/components/calendarComponent'
 import type { CrudRow } from '@/actions/crud'
 import { Button } from './ui/button'
@@ -8,6 +8,7 @@ import { fr } from 'date-fns/locale'
 import { format } from 'date-fns'
 import { reservationSchema, type ReservationInsert } from '@/schema/reservation.schema'
 import { CalendarOff, CheckCircle2, CreditCard, ReceiptText } from 'lucide-react'
+import { getReservationPeriod } from '@/lib/reservation-period' 
 type ReservationCalendarsProps = { 
     childId: number; 
     soupPrice: number; 
@@ -16,7 +17,13 @@ type ReservationCalendarsProps = {
     hotMealId: number; 
     disabledDates: Date[]; 
     reservedDates: Date[]; 
-    blockedDays: CrudRow<'blocked_day'>[] 
+    blockedDays: CrudRow<'blocked_day'>[]
+    periodData: {
+        commandDeadline: Date
+        minSelectableDate: Date
+        maxSelectableDate: Date
+        allowedWeeks: Array<{ start: Date; end: Date }>
+    }
 }
 const ReservationCalendars = ({ 
     childId, 
@@ -26,14 +33,23 @@ const ReservationCalendars = ({
     hotMealId, 
     disabledDates, 
     reservedDates, 
-    blockedDays 
+    blockedDays,
+    periodData,
 }: ReservationCalendarsProps) => {
- const [soupDates, setSoupDates] = React.useState<Date[]>([]); 
- const [hotMealDates, setHotMealDates] = React.useState<Date[]>([]); 
- const [isSubmitting, setIsSubmitting] = React.useState(false); 
- const [errorMessage, setErrorMessage] = React.useState<string | null>(null); 
+ const [soupDates, setSoupDates] = useState<Date[]>([]); 
+ const [hotMealDates, setHotMealDates] = useState<Date[]>([]); 
+ const [isSubmitting, setIsSubmitting] = useState(false); 
+ const [errorMessage, setErrorMessage] = useState<string | null>(null); 
+ const soupDisabledDates = useMemo(
+    () => [...disabledDates, ...reservedDates, ...hotMealDates],
+    [disabledDates, reservedDates, hotMealDates]
+ )
+ const hotMealDisabledDates = useMemo(
+    () => [...disabledDates, ...reservedDates, ...soupDates],
+    [disabledDates, reservedDates, soupDates]
+ )
  const total = soupDates.length * soupPrice + hotMealDates.length * hotMealPrice
- const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => { 
+ const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => { 
     event.preventDefault(); 
     setErrorMessage(null); 
     const reservations: ReservationInsert[] = [...soupDates.map((date) => ({ 
@@ -74,6 +90,8 @@ const ReservationCalendars = ({
     } catch (error) { 
         setErrorMessage(error instanceof Error ? error.message : 'Une erreur est survenue.') 
     } finally { setIsSubmitting(false) } }
+
+    
  return (
     <form onSubmit={handleSubmit} 
         className='mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:py-10'
@@ -96,14 +114,16 @@ const ReservationCalendars = ({
                     price={soupPrice} 
                     selectedDates={soupDates} 
                     onDatesChange={setSoupDates} 
-                    disabledDates={[...disabledDates, ...reservedDates, ...hotMealDates]} 
+                    disabledDates={soupDisabledDates} 
+                    periodData={periodData} 
                 />
                 <CalendarComponent 
                     titre='Réservation repas chaud' 
                     price={hotMealPrice} 
                     selectedDates={hotMealDates} 
                     onDatesChange={setHotMealDates} 
-                    disabledDates={[...disabledDates, ...reservedDates, ...soupDates]} 
+                    disabledDates={hotMealDisabledDates} 
+                    periodData={periodData} 
                 />
             </div>
             <aside className='rounded-2xl border border-border/70 bg-card p-6 shadow-sm lg:sticky lg:top-24'>

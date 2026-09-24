@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
+import ReservationPeriods from "@/components/reservationPeriods"
+import { getAllRecords } from "@/actions/crud"
 
 export default async function Page() {
   const supabase = await createClient()
@@ -11,6 +13,7 @@ export default async function Page() {
     redirect('/auth')
   }
 
+  
   return (
     <div className="flex min-h-svh p-6">
       <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
@@ -23,6 +26,7 @@ export default async function Page() {
         <div className="font-mono text-xs text-muted-foreground">
           (Press <kbd>d</kbd> to toggle dark mode)
         </div>
+        
       </div>
     </div>
   )

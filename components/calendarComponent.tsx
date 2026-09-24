@@ -3,42 +3,29 @@ import { Calendar } from '@/components/ui/calendar'
 import { Badge } from '@/components/ui/badge'
 import { fr } from 'date-fns/locale'
 import {
-  addDays,
   format,
   isAfter,
   isBefore,
   isSameDay,
   startOfDay,
-  differenceInCalendarDays,
 } from 'date-fns'
 import { CalendarDays, Soup } from 'lucide-react'
-import { useState, useMemo } from 'react'
-import { 
-  ANCHOR_RANGE_START, 
-  ANCHOR_RANGE_END, 
-  ANCHOR_COMMAND_DEADLINE, 
-  CYCLE_LENGTH_DAYS 
-} from '@/constants/constants'
+import { useMemo, useState } from 'react'
 
-// Define the props for the CalendarComponent
+interface CalendarPeriodData {
+  commandDeadline: Date
+  minSelectableDate: Date
+  maxSelectableDate: Date
+  allowedWeeks: Array<{ start: Date; end: Date }>
+}
+
 interface CalendarComponentProps {
   titre: string
   price: number
   disabledDates: Date[]
   selectedDates?: Date[]
   onDatesChange?: (dates: Date[]) => void
-}
-
-/**
- * Calcule l'index du cycle courant (0 = premier cycle, 1 = deuxième, etc.)
- * en fonction de la date du jour.
- * Tant que "today" est <= à la date limite de commande du cycle, on reste
- * sur ce cycle. Dès qu'elle est dépassée, on bascule sur le suivant.
- */
-function getCurrentCycleIndex(today: Date): number {
-  const diffDays = differenceInCalendarDays(startOfDay(today), ANCHOR_COMMAND_DEADLINE)
-  const cycleIndex = Math.ceil(diffDays / CYCLE_LENGTH_DAYS)
-  return Math.max(0, cycleIndex)
+  periodData: CalendarPeriodData
 }
 
 const CalendarComponent = ({
@@ -47,8 +34,10 @@ const CalendarComponent = ({
   disabledDates,
   selectedDates,
   onDatesChange,
+  periodData,
 }: CalendarComponentProps) => {
   const [internalDates, setInternalDates] = useState<Date[]>([])
+
   const dates = selectedDates ?? internalDates
   const handleDatesChange = (nextDates: Date[]) => {
     setInternalDates(nextDates)
@@ -60,29 +49,24 @@ const CalendarComponent = ({
     []
   )
 
-  // On calcule le cycle actuel une seule fois par rendu (dépend du jour courant)
-  const { commandDeadline, minSelectableDate, maxSelectableDate } = useMemo(() => {
-    const cycleIndex = getCurrentCycleIndex(new Date())
-    const offset = cycleIndex * CYCLE_LENGTH_DAYS
-
-    return {
-      commandDeadline: addDays(ANCHOR_COMMAND_DEADLINE, offset),
-      minSelectableDate: addDays(ANCHOR_RANGE_START, offset),
-      maxSelectableDate: addDays(ANCHOR_RANGE_END, offset),
-    }
-  }, [])
+  const { commandDeadline, minSelectableDate, maxSelectableDate, allowedWeeks } = periodData
 
   const isOutsideAllowedRange = (date: Date) =>
     isBefore(startOfDay(date), minSelectableDate) ||
     isAfter(startOfDay(date), maxSelectableDate)
 
-  const dayOfWeekIsDisabled = (date: Date) => [0, 6, 3].includes(date.getDay())
+  const dayOfWeekIsDisabled = (date: Date) => [0, 3,  6].includes(date.getDay())
+  const isOutsideReservationWeeks = (date: Date) =>
+    !allowedWeeks.some(
+      (week) => date >= week.start && date <= week.end
+    )
 
   return (
     <section className='rounded-2xl border border-border/70 bg-card p-5 shadow-sm'>
       <div className='mb-5 flex items-start justify-between gap-4'>
         <div>
-          <div className='mb-2 flex size-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700'>
+          <div className='mb-2 flex size-10 items-center justify-center 
+            rounded-xl bg-emerald-50 text-emerald-700'>
             <Soup className='size-5' />
           </div>
           <h2 className='text-lg font-semibold tracking-tight'>{titre}</h2>
@@ -105,10 +89,14 @@ const CalendarComponent = ({
         weekStartsOn={1}
         startMonth={minSelectableDate}
         endMonth={maxSelectableDate}
-        disabled={(date) =>
+        /*disabled={(date) =>
           disabledDates.some((disabledDate) => isSameDay(date, disabledDate))
         }
-        hidden={(date) => isOutsideAllowedRange(date) || dayOfWeekIsDisabled(date)}
+        hidden={(date) =>
+          isOutsideAllowedRange(date) ||
+          isOutsideReservationWeeks(date) ||
+          dayOfWeekIsDisabled(date)
+        }*/
         locale={fr}
       />
 

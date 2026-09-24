@@ -3,10 +3,10 @@
 import { createClient } from "@/lib/supabase/server";
 
 // export data for reservations order by date for exel file
-export async function getReservationsForExport() {
+export async function getReservationsForExport(start?: string, end?: string) {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("reservation")
     .select(`
       date,
@@ -18,6 +18,16 @@ export async function getReservationsForExport() {
       )
     `)
     .order("date");
+
+  if (start) {
+    query = query.gte("date", start);
+  }
+
+  if (end) {
+    query = query.lte("date", end);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
 

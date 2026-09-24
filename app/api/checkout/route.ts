@@ -2,8 +2,15 @@ import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { reservationSchema } from "@/schema/reservation.schema";
-import { getReservationPeriod } from "@/lib/reservation-period";
-
+import { format } from "date-fns";
+import { 
+  getCurrentCycleIndex, 
+  getReservationPeriodsUntil,
+  getEndYear,
+  getFristCommand,
+  getFirstReservation
+} from "@/constants/constants";
+import { getAllRecords } from "@/actions/crud";
 export async function POST(req: Request) {
 
   const body: unknown = await req.json();
@@ -42,8 +49,77 @@ export async function POST(req: Request) {
   if (childError || !child) {
     return NextResponse.json({ error: "Enfant introuvable." }, { status: 400 });
   }
-  // Check if there are existing reservations for the child within the 15-day period
-  const period = getReservationPeriod(new Date(reservations[0].date));
+
+  const datas = await getAllRecords('blocked_day');
+  const dates = datas.map((data) => new Date(data.blocked_date));
+  const [endYear, firstReservation] = await Promise.all([
+    getEndYear(),
+    getFirstReservation(),
+  ]);
+
+  const periods = await getReservationPeriodsUntil(endYear, dates);
+  const currentCycleIndex = await getCurrentCycleIndex(new Date(), dates);
+  const periodData = periods[currentCycleIndex] ?? periods.at(-1);
+  const weeks = periodData?.weeks ?? [{ start: firstReservation, end: firstReservation }];
+
+  const period = {
+    start: format(weeks[0]?.start ?? firstReservation, 'yyyy-MM-dd'),
+    end: format(weeks[weeks.length - 1]?.end ?? firstReservation, 'yyyy-MM-dd'),
+  };
+
+  const hasOutOfRangeDate = reservations.some(({ date }) => {
+    const reservationDate = new Date(`${date}T00:00:00`);
+    const periodStart = new Date(`${period.start}T00:00:00`);
+    const periodEnd = new Date(`${period.end}T00:00:00`);
+
+    return reservationDate < periodStart || reservationDate > periodEnd;
+  });
+
+  if (hasOutOfRangeDate) {
+    return NextResponse.json(
+      {
+        error: `La date de réservation doit être comprise entre ${period.start} et ${period.end}.`,
+      },
+      { status: 400 },
+    );
+  }
+
+  const hasForbiddenWeekday = reservations.some(({ date }) => {
+    const reservationDate = new Date(`${date}T00:00:00`);
+    return [3, 6, 0].includes(reservationDate.getDay());
+  });
+
+  if (hasForbiddenWeekday) {
+    return NextResponse.json(
+      {
+        error: "Les commandes ne sont pas acceptées les mercredi, samedi et dimanche.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const blockedDates = reservations
+    .map(({ date }) => date)
+    .filter((date) => {
+      const normalizedDate = new Date(`${date}T00:00:00`).toISOString().slice(0, 10);
+      return dates.some((blockedDate) => {
+        const normalizedBlockedDate = new Date(blockedDate).toISOString().slice(0, 10);
+        return normalizedBlockedDate === normalizedDate;
+      });
+    });
+
+  if (blockedDates.length > 0) {
+    const blockedDateList = [...new Set(blockedDates)].sort().join(', ');
+
+    return NextResponse.json(
+      {
+        error: `La date ${blockedDateList} est bloquée et ne peut pas être commandée.`,
+      },
+      { status: 400 },
+    );
+  }
+
+  // Check if there are existing reservations for the child within the active reservation period
   const { data: existingReservation, error: reservationError } = await supabase
     .from("reservation")
     .select("id")
@@ -51,14 +127,14 @@ export async function POST(req: Request) {
     .gte("date", period.start)
     .lte("date", period.end)
     .limit(1);
-
+  console.log('reservation', existingReservation);
   if (reservationError) {
     return NextResponse.json(
       { error: "Impossible de vérifier les réservations existantes." },
       { status: 500 },
     );
   }
-
+  
   if (existingReservation.length > 0) {
     return NextResponse.json(
       {

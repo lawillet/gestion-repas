@@ -1,11 +1,12 @@
 'use server'
-import React from 'react'
 import { Button } from '@/components/ui/button';
 import CalendarComponent from '@/components/calendarDisabledDays';
 import { deleteRecord, getAllRecords } from '@/actions/crud';
 import { refresh, revalidatePath } from 'next/cache';
 import ImportSchoolCalendar from "@/components/admin/importSchoolCalendar";
 import Link from 'next/link';
+import ReservationPeriods from '@/components/reservationPeriods';
+
 
 // server action to unblock a date => blocked-day.ts
 async function unblockDate(formData: FormData) {
@@ -23,8 +24,11 @@ async function unblockDate(formData: FormData) {
 
 
 const BlockedDays = async() => {
-    
     const allBlockedDay =  await getAllRecords('blocked_day')
+
+    const blockedDates = (await getAllRecords('blocked_day')).map(
+    (row) => new Date(row.blocked_date)
+    )
     return (
         <div className='flex-column items-center justify-center'>
             <CalendarComponent
@@ -56,6 +60,7 @@ const BlockedDays = async() => {
                 Le fichier .ics doit contenir les événements scolaires avec les dates de début et de fin.
             </p>
             <ImportSchoolCalendar />
+            <ReservationPeriods disabledDate={blockedDates} />
         </div>
        
     )

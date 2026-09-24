@@ -1,6 +1,8 @@
 'use server'
 import { inscriptionSchemaServer, loginSchemaServer, passwordResetSchema, updatePasswordSchema } from '@/schema/auth.schema'
 import { createClient } from "@/lib/supabase/server"
+import { redirect } from 'next/navigation';
+
 
 
 // validation du login côté serveur
@@ -76,7 +78,12 @@ export const updatePassword = async (password: updatePasswordSchema) => {
 
   if (error) throw new Error('Impossible de modifier le mot de passe.');
 
+  await supabase.auth.signOut();
+
+  redirect("/auth/login?reset=success")
+
   return data;
+
 }
 
 

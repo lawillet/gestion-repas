@@ -1,11 +1,17 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { blockedDaysSchema } from "@/schema/blocked-day.schema";
+import { 
+  blockedDaysSchema,
+  blockedDaysCreateSchema
+ } from "@/schema/blocked-day.schema";
 import { createRecord } from "./crud";
 import { getRecordById } from "./crud";
 
+
 export async function importBlockedDays(days: unknown) {
+  
+
   const validation = blockedDaysSchema.safeParse(days);
   const dates = validation.data?.map((d) => d.blocked_date);
   // see duplicate
@@ -50,21 +56,79 @@ export async function importBlockedDays(days: unknown) {
 }
 
 export const blockedDays = async (dates: string[], reasons: string[]) => {
-  const blockedDays = dates.map((date, index) => ({
-    blocked_date: date,
-    reason: reasons[index] || 'Aucune raison fournie',
-  }));
-  // Check if the date is already blocked
-  await Promise.all(blockedDays.map(async (data) => {
-    const existingRecord = await getRecordById('blocked_day', data.blocked_date, 'blocked_date')
-    console.log(existingRecord?.blocked_date);
-    console.log(data.blocked_date);
-    console.log(typeof data.blocked_date);
-    if (existingRecord){        
-      // TODO: Show a message to the user that the date is already blocked
-      return console.log('la date est déjà bloqué');
-    }
-    await createRecord('blocked_day', { blocked_date: data.blocked_date, reason: data.reason });
-  }));
+  if (!Array.isArray(dates) || !Array.isArray(reasons)) {
+    return {
+      success: false,
+      errors: [{
+        index: null,
+        date: null,
+        errors: ['Les paramètres dates et reasons doivent être des tableaux.'],
+      }],
+    };
+  }
 
-}
+  if (dates.length !== reasons.length) {
+    return {
+      success: false,
+      errors: [{
+        index: null,
+        date: null,
+        errors: ['Le nombre de dates et de raisons doit être identique.'],
+      }],
+    };
+  }
+
+  const validationErrors: Array<{ index: number; date: string; errors: string[] }> = [];
+
+  const blockedDaysToInsert = dates.flatMap((date, index) => {
+    const payload = {
+      blocked_date: date,
+      reason: reasons[index] ?? 'Aucune raison fournie',
+    };
+
+    const validation = blockedDaysCreateSchema.safeParse(payload);
+
+    if (!validation.success) {
+      validationErrors.push({
+        index,
+        date,
+        errors: validation.error.issues.map((issue) => issue.message),
+      });
+      return [];
+    }
+
+    return [payload];
+  });
+
+  if (validationErrors.length > 0) {
+    return {
+      success: false,
+      errors: validationErrors.map((error) => ({
+        index: error.index,
+        date: error.date,
+        errors: error.errors,
+      })),
+    };
+  }
+
+  await Promise.all(
+    blockedDaysToInsert.map(async (data) => {
+      const existingRecord = await getRecordById('blocked_day', data.blocked_date, 'blocked_date');
+
+      if (existingRecord) {
+        return console.log('la date est déjà bloquée');
+      }
+
+      await createRecord('blocked_day', {
+        blocked_date: data.blocked_date,
+        reason: data.reason,
+      });
+    })
+  );
+
+  return {
+    success: true,
+    inserted: blockedDaysToInsert.length,
+    errors: [],
+  };
+};

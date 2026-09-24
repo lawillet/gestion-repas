@@ -22,6 +22,18 @@ export default function ResetPassword() {
 
   useEffect(() => {
     const supabase = createClient();
+    
+    async function checkRecoverySession() {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session) {
+      setIsRecovery(true);
+    }
+  }
+
+  checkRecoverySession();
     const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') setIsRecovery(true);
     });
