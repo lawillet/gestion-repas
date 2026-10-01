@@ -4,7 +4,6 @@ import {
   differenceInCalendarDays,
   endOfWeek,
   startOfWeek,
-  subDays,
 } from "date-fns";
 import { getAllRecords } from "@/actions/crud";
 
@@ -69,7 +68,7 @@ export const CYCLE_LENGTH_DAYS = 14;
 export const ANCHOR_RANGE_START = getAnchorRangeStart();
 export const ANCHOR_COMMAND_DEADLINE = getAnchorCommandDeadline();
 export const ANCHOR_END_YEAR = getAnchorEndYear();
-const currentYear = new Date().getFullYear();
+
 
 // Default values for the first range, deadline and school year end
 /*const DEFAULT_ANCHOR_RANGE_START = new Date(currentYear, 8, 1);

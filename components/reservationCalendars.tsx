@@ -20,10 +20,10 @@ type ReservationCalendarsProps = {
     reservedDates: Date[]; 
     blockedDays: CrudRow<'blocked_day'>[]
     periodData: {
-        commandDeadline: Date
-        minSelectableDate: Date
-        maxSelectableDate: Date
-        allowedWeeks: Array<{ start: Date; end: Date }>
+        commandDeadline: string
+        minSelectableDate: string
+        maxSelectableDate: string
+        allowedWeeks: Array<{ start: string; end: string }>
     }
 }
 const ReservationCalendars = ({ 
@@ -50,6 +50,15 @@ const ReservationCalendars = ({
     [disabledDates, reservedDates, soupDates]
  )
  const total = soupDates.length * soupPrice + hotMealDates.length * hotMealPrice
+ const calendarPeriodData = useMemo(() => ({
+    commandDeadline: parseISO(periodData.commandDeadline),
+    minSelectableDate: parseISO(periodData.minSelectableDate),
+    maxSelectableDate: parseISO(periodData.maxSelectableDate),
+    allowedWeeks: periodData.allowedWeeks.map((week) => ({
+        start: parseISO(week.start),
+        end: parseISO(week.end),
+    })),
+ }), [periodData])
  const blockedDayGroups = useMemo(() => {
     const sortedDays = [...blockedDays].sort(
         (first, second) =>
@@ -149,7 +158,7 @@ const ReservationCalendars = ({
                     selectedDates={soupDates} 
                     onDatesChange={setSoupDates} 
                     disabledDates={soupDisabledDates} 
-                    periodData={periodData} 
+                    periodData={calendarPeriodData} 
                 />
                 <CalendarComponent 
                     titre='Réservation repas chaud' 
@@ -157,7 +166,7 @@ const ReservationCalendars = ({
                     selectedDates={hotMealDates} 
                     onDatesChange={setHotMealDates} 
                     disabledDates={hotMealDisabledDates} 
-                    periodData={periodData} 
+                    periodData={calendarPeriodData} 
                 />
             </div>
 

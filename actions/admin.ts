@@ -1,6 +1,7 @@
 'use server'
 import { inscriptionSchemaServer } from "@/schema/auth.schema";
 import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { ADMIN } from "@/constants/constants";
 import { updateRecord } from "@/actions/crud";
 
@@ -9,16 +10,20 @@ export const signupAdmin = async (inscription: inscriptionSchemaServer) => {
   try {
     const validatedInscription = inscriptionSchemaServer.parse(inscription);
     const supabase = await createClient();
-    const { data: existingUser, error: existingUserError } = await supabase
-      .from('users')
-      .select('email')
-      .eq('email', validatedInscription.email)
-      .maybeSingle();
-      
 
-    if (existingUserError) throw existingUserError;
-    if (existingUser) {
-      throw new Error('Cette adresse e-mail est déjà utilisée.');
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData.user) {
+      throw new Error('Accès réservé aux administrateurs.');
+    }
+
+    const { data: currentAdmin, error: adminLookupError } = await supabase
+      .from('users')
+      .select('type')
+      .eq('id', authData.user.id)
+      .maybeSingle();
+
+    if (adminLookupError || currentAdmin?.type !== ADMIN) {
+      throw new Error('Accès réservé aux administrateurs.');
     }
 
     const { data, error } = await supabase.auth.signUp({
@@ -26,15 +31,20 @@ export const signupAdmin = async (inscription: inscriptionSchemaServer) => {
       password: validatedInscription.password,
     });
 
-    const { data: adminData, error: adminError } = await supabase
-      .from('users')
-      .update({type: ADMIN} )
-      .eq('email', validatedInscription.email);
-
     if (error) throw error;
-    if (data.user?.identities?.length === 0) {
+    if (!data.user || data.user.identities?.length === 0) {
       throw new Error('Cette adresse e-mail est déjà utilisée.');
     }
+
+    const { error: profileError } = await supabaseAdmin
+      .from('users')
+      .upsert({
+        id: data.user.id,
+        email: data.user.email ?? validatedInscription.email,
+        type: ADMIN,
+      }, { onConflict: 'id' });
+
+    if (profileError) throw profileError;
 
     return data;
   } catch (error) {

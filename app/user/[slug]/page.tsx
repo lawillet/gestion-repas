@@ -1,7 +1,7 @@
 ﻿'use server'
 import ReservationCalendars from '@/components/reservationCalendars';
 import { getAllRecords, getRecordById } from '@/actions/crud';
-import { parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { notFound } from 'next/navigation';
 import {
     getCurrentCycleIndex,
@@ -60,10 +60,13 @@ const Reservation = async ({ params }: PageProps) => {
     const weeks = period?.weeks ?? [{ start: firstReservation, end: firstReservation }];
 
     const periodData = {
-        commandDeadline: period?.commandDeadline ?? firstCommand,
-        minSelectableDate: weeks[0]?.start ?? firstReservation,
-        maxSelectableDate: weeks[weeks.length - 1]?.end ?? firstReservation,
-        allowedWeeks: weeks,
+        commandDeadline: format(period?.commandDeadline ?? firstCommand, 'yyyy-MM-dd'),
+        minSelectableDate: format(weeks[0]?.start ?? firstReservation, 'yyyy-MM-dd'),
+        maxSelectableDate: format(weeks[weeks.length - 1]?.end ?? firstReservation, 'yyyy-MM-dd'),
+        allowedWeeks: weeks.map((week) => ({
+            start: format(week.start, 'yyyy-MM-dd'),
+            end: format(week.end, 'yyyy-MM-dd'),
+        })),
     };
 
     return (

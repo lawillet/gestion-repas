@@ -1,24 +1,18 @@
 'use client';
 // gestion des erreurs 
-import { authenticate, inscription } from '@/actions/auth';
 import { signupAdmin } from '@/actions/admin';
 
 import { Button } from '@/components/ui/button';
 import {
   Field,
-  FieldDescription,
-  FieldGroup,
   FieldLabel,
   FieldSet,
 } from "@/components/ui/field"
 import { Input } from '@/components/ui/input';
-import { FieldError } from '@base-ui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
-import Link from 'next/link';
 import { loginSchema } from '@/schema/auth.schema';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserShield } from 'lucide-react';

@@ -97,15 +97,10 @@ export async function POST(req: Request) {
     );
   }
 
+  const blockedDateKeys = new Set(datas.map(({ blocked_date }) => blocked_date));
   const blockedDates = reservations
     .map(({ date }) => date)
-    .filter((date) => {
-      const normalizedDate = new Date(`${date}T00:00:00`).toISOString().slice(0, 10);
-      return dates.some((blockedDate) => {
-        const normalizedBlockedDate = new Date(blockedDate).toISOString().slice(0, 10);
-        return normalizedBlockedDate === normalizedDate;
-      });
-    });
+    .filter((date) => blockedDateKeys.has(date));
 
   if (blockedDates.length > 0) {
     const blockedDateList = [...new Set(blockedDates)].sort().join(', ');

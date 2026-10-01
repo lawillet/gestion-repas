@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+
 import { columns, Meal } from "./columns"
 import { DataTable } from "../../../components/data-table"
 import { getAllRecords } from "@/actions/crud";
