@@ -24,6 +24,7 @@ interface ReservationPeriodsListProps {
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
+
 export function ButtonGroupDropdown({disabledDate} : ReservationPeriodsListProps) {
     const [reservationPeriods, setReservationPeriods] = useState<ReservationPeriod[]>([])
     //const jean = "?start=${period.start}&end=${period.end}"
@@ -47,7 +48,7 @@ export function ButtonGroupDropdown({disabledDate} : ReservationPeriodsListProps
     }, [disabledDate])
   return (
     <ButtonGroup>
-      <Button variant="outline">Exporter les réservations</Button>
+      <Button>Exporter les réservations</Button>
       <DropdownMenu>
         <DropdownMenuTrigger render={
             <Button variant="outline" className="pl-2!">

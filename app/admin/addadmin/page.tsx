@@ -20,6 +20,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import Link from 'next/link';
 import { loginSchema } from '@/schema/auth.schema';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { UserShield } from 'lucide-react';
 
 export default function Addadmin() {
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -50,8 +52,13 @@ export default function Addadmin() {
 
   return (
     <div className='flex h-svh items-center justify-center'>
-      <div className='mx-auto grid w-[350px] gap-6'>
-        
+      
+        <Card>
+          <CardHeader className='flex items-center'>
+            <UserShield className='w-10 h-10'/>
+            <CardTitle className='text-2xl'>Créer un compte administrateur</CardTitle>
+          </CardHeader>
+          <CardContent>
           <form onSubmit={form.handleSubmit(onSignup)} className='grid gap-4'>
             <FieldSet>
             <Controller
@@ -110,8 +117,9 @@ export default function Addadmin() {
             
             </FieldSet>
           </form>
-          
-      </div>
+          </CardContent>
+        </Card>
+      
     </div>
   );
 }

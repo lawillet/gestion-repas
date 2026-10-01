@@ -89,14 +89,17 @@ const CalendarComponent = ({
         weekStartsOn={1}
         startMonth={minSelectableDate}
         endMonth={maxSelectableDate}
-        /*disabled={(date) =>
-          disabledDates.some((disabledDate) => isSameDay(date, disabledDate))
-        }
-        hidden={(date) =>
+        modifiers={{ commandDeadline }}
+        modifiersClassNames={{
+          commandDeadline: '[&>button]:!bg-red-600 [&>button]:!text-white [&>button]:!opacity-100',
+        }}
+        disabled={(date) =>
+          disabledDates.some((disabledDate) => isSameDay(date, disabledDate)) ||
           isOutsideAllowedRange(date) ||
           isOutsideReservationWeeks(date) ||
           dayOfWeekIsDisabled(date)
-        }*/
+        }
+        
         locale={fr}
       />
 

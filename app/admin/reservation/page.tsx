@@ -12,7 +12,6 @@ import {
 } from 'date-fns'
 import { CalendarDays } from 'lucide-react'
 import { getAllRecords } from '@/actions/crud'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
   Table, 
@@ -23,11 +22,6 @@ import {
   TableRow 
 } from '@/components/ui/table'
 import ReservationFilters from './reservation-filters'
-import Link from 'next/link'
-import {
-  getEndYear,
-  getReservationPeriodsUntil,
-} from '@/constants/constants'
 import { ButtonGroupDropdown } from '@/components/admin/buttonGroupDropdown'
 
 type ReservationPageProps = { searchParams: 
@@ -92,7 +86,7 @@ function getDateRange(period: string, dateFrom?: string, dateTo?: string) {
 }
 
 export default async function Reservation({ searchParams }: ReservationPageProps) {
-  const endYear = await getEndYear()
+
   const blockedDates = (await getAllRecords('blocked_day')).map(
     (row) => new Date(row.blocked_date))
   const params = await searchParams
@@ -136,9 +130,6 @@ export default async function Reservation({ searchParams }: ReservationPageProps
 
   return (
   <main className='mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:py-10'>
-    <p className='text-sm font-medium text-emerald-700'>
-      Administration
-    </p>
     <h1 className='mt-1 text-3xl font-semibold tracking-tight'>
       Historique des réservations
     </h1>
@@ -152,8 +143,8 @@ export default async function Reservation({ searchParams }: ReservationPageProps
             Réservations
           </CardTitle>
           <p className='mt-1 text-sm text-muted-foreground'>
-            {sortedReservations.length}
-             réservation{sortedReservations.length > 1 ? 's' : ''} 
+            {sortedReservations.length}{' '}
+             réservation{sortedReservations.length > 1 ? 's' : ''}{' '}
              trouvée{sortedReservations.length > 1 ? 's' : ''}
           </p>
         </div>
@@ -198,9 +189,6 @@ export default async function Reservation({ searchParams }: ReservationPageProps
             <TableHead>
               Prix
             </TableHead>
-            <TableHead>
-              Statut
-            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>{sortedReservations.map((reservation) => {
@@ -229,15 +217,14 @@ export default async function Reservation({ searchParams }: ReservationPageProps
                 {format(parseISO(reservation.date), 'dd/MM/yyyy')}
               </TableCell>
               <TableCell>
-                {meal?.type ?? 'Repas inconnu'}
+                {meal?.type === 'soup'
+                  ? 'Soupe'
+                  : meal?.type === 'meal'
+                    ? 'Repas chaud'
+                    : meal?.type ?? 'Repas inconnu'}
               </TableCell>
               <TableCell>
                 {meal?.price != null ? `${meal.price.toFixed(2)} €` : '—'}
-              </TableCell>
-              <TableCell>
-                <Badge variant={reservation.status === false ? 'outline' : 'success'}>
-                  {reservation.status === false ? 'Annulée' : 'Payé'}
-                </Badge>
               </TableCell>
             </TableRow>
           )
@@ -252,7 +239,10 @@ export default async function Reservation({ searchParams }: ReservationPageProps
     >
       Exporter les réservations
     </a>*/}
+    <h2 className="text-2xl pt-8">Exportation des réservations au format excel</h2>
+    <div className='pb-4 pt-4'>
     <ButtonGroupDropdown disabledDate={blockedDates} />
+    </div>
   </main>
   )
 }

@@ -11,8 +11,10 @@ import {
 import { Field, FieldLabel, FieldSet } from '@/components/ui/field'; 
 import { Input } from '@/components/ui/input'; 
 import { zodResolver } from '@hookform/resolvers/zod'; 
-import { ArrowRight, LockKeyhole } from 'lucide-react'; 
-import Link from 'next/link'; import { useRouter } from 'next/navigation'; 
+import { ArrowRight } from 'lucide-react'; 
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation'; 
 import { useState } from 'react'; 
 import { Controller, useForm } from 'react-hook-form'; 
 import { z } from 'zod'; import { loginSchema } from '../../schema/auth.schema';
@@ -23,23 +25,22 @@ export default function Auth() {
         defaultValues: { email: '', password: '' } 
     }); 
     const [isAuthenticating, setIsAuthenticating] = useState(false); 
-    const router = useRouter(); 
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const resetStatus = searchParams.get('reset');
+    const authError = searchParams.get('error');
+
     const onSubmit = async ({ email, password }: z.infer<typeof loginSchema>) => { 
         setIsAuthenticating(true); 
+        form.clearErrors('root');
         try { 
             await authenticate({ email, password }); 
             router.push('/user') 
-        } catch (error) { 
-            form.setError('email', { 
-                type: 'manual', 
-                message: error instanceof Error ? 
-                error.message : 'Une erreur est survenue' 
-            }); 
-            form.setError('password', 
-                { 
-                    type: 'manual', 
-                    message: 'Adresse e-mail ou mot de passe incorrect.' 
-                }) 
+        } catch {
+            form.setError('root', {
+                type: 'manual',
+                message: 'Adresse e-mail ou mot de passe incorrect.',
+            });
             } finally { 
                 setIsAuthenticating(false) 
             } 
@@ -47,17 +48,26 @@ export default function Auth() {
 
         return (
             <main 
-                className='flex min-h-svh items-center justify-center 
-                    bg-linear-to-br from-emerald-50 via-slate-50 to-blue-50 p-4'
+                className='relative isolate flex min-h-svh items-center justify-center overflow-hidden p-4'
             >
-                <Card className='w-full max-w-md shadow-lg shadow-slate-200/60'>
+                <Image
+                    src='/Ecole-Cerfontaine-batiment.jpeg'
+                    alt=''
+                    fill
+                    priority
+                    sizes='100vw'
+                    className='z-0 object-cover'
+                />
+                <div aria-hidden='true' className='absolute inset-0 z-10 bg-slate-950/45' />
+                <Card className='relative z-20 w-full max-w-md shadow-lg shadow-slate-950/30'>
                     <CardHeader className='text-center'>
-                        <div 
-                            className='mx-auto mb-2 flex size-12 items-center 
-                            justify-center rounded-2xl bg-emerald-600 text-white'
-                        >
-                            <LockKeyhole />
-                        </div>
+                        <Image
+                            src='/Cerfontaine_logo.svg'
+                            alt='Cerfontaine embléme'
+                            width={160}
+                            height={48}
+                            className='mx-auto mb-2 h-20 w-auto object-contain'
+                        />
                         <CardTitle className='text-2xl'>
                             Bienvenue
                         </CardTitle>
@@ -66,6 +76,21 @@ export default function Auth() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
+                        {resetStatus === 'sent' && (
+                            <p className='mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700' role='status'>
+                                Un e-mail de réinitialisation a été envoyé. Vérifiez votre boîte de réception.
+                            </p>
+                        )}
+                        {resetStatus === 'success' && (
+                            <p className='mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700' role='status'>
+                                Mot de passe mis à jour avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.
+                            </p>
+                        )}
+                        {authError && (
+                            <p className='mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700' role='alert'>
+                                {decodeURIComponent(authError)}
+                            </p>
+                        )}
                         <form onSubmit={form.handleSubmit(onSubmit)}>
                             <FieldSet className='gap-5'>
                                 <Controller 
@@ -140,6 +165,11 @@ export default function Auth() {
                                     <ArrowRight />
                                 </Button>
                             </FieldSet>
+                            {form.formState.errors.root?.message && (
+                                <p className='mt-3 text-sm text-destructive' role='alert'>
+                                    {form.formState.errors.root.message}
+                                </p>
+                            )}
                         </form>
                         <p 
                             className='mt-6 text-center text-sm text-muted-foreground'
@@ -149,7 +179,7 @@ export default function Auth() {
                                 href='/auth/inscription' 
                                 className='font-medium text-primary hover:underline'
                             >
-                                Créer un compte
+                                {' '}Créer un compte
                             </Link>
                         </p>
                     </CardContent>

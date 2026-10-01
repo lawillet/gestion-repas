@@ -7,7 +7,6 @@ import {
   getCurrentCycleIndex, 
   getReservationPeriodsUntil,
   getEndYear,
-  getFristCommand,
   getFirstReservation
 } from "@/constants/constants";
 import { getAllRecords } from "@/actions/crud";
@@ -127,7 +126,7 @@ export async function POST(req: Request) {
     .gte("date", period.start)
     .lte("date", period.end)
     .limit(1);
-  console.log('reservation', existingReservation);
+  
   if (reservationError) {
     return NextResponse.json(
       { error: "Impossible de vérifier les réservations existantes." },
@@ -177,7 +176,7 @@ export async function POST(req: Request) {
   const metadataReservations = JSON.stringify(
     reservations.map(({ date, meal_id }) => ({ d: date, m: meal_id })),
   );
-  console.log("metadataReservations: ", metadataReservations.length);
+  
 
   const session =
     await stripe.checkout.sessions.create({

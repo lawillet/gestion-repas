@@ -1,23 +1,20 @@
 'use client';
-// gestion des erreurs 
-import { authenticate, resetPassword } from '@/actions/auth';
 import { Button } from '@/components/ui/button';
 import {
   Field,
-  FieldDescription,
-  FieldGroup,
   FieldLabel,
   FieldSet,
 } from "@/components/ui/field"
 import { Input } from '@/components/ui/input';
-import { FieldError } from '@base-ui/react';
+import { createClient } from '@/lib/supabase/client';
 import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { loginSchema, passwordResetSchema } from '../../../schema/auth.schema';
-import Link from 'next/link';
+import { passwordResetSchema } from '../../../schema/auth.schema';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Auth() {
   const form = useForm<z.infer<typeof passwordResetSchema>>({
@@ -35,8 +32,17 @@ export default function Auth() {
     setIsAuthenticating(true);
 
     try {
-      await resetPassword({ email });
-      router.push('/user'); 
+      const supabase = createClient();
+      const redirectTo = `${window.location.origin}/auth/confirm`;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Impossible d’envoyer le lien de réinitialisation.');
+      }
+
+      router.push('/auth?reset=sent');
     } catch (error) {
       form.setError('email', { type: 'manual', message: error instanceof Error ? error.message : 'Une erreur est survenue' });
     } finally {
@@ -48,7 +54,11 @@ export default function Auth() {
   return (
     <div className='flex h-svh items-center justify-center'>
       <div className='mx-auto grid w-[350px] gap-6'>
-        
+        <Card>
+          <CardHeader>
+            <CardTitle className='text-2xl'>Changer de mot de passe</CardTitle>
+          </CardHeader>
+          <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)} className='grid gap-4'>
             <FieldSet>
             <Controller
@@ -84,12 +94,17 @@ export default function Auth() {
         
             </FieldSet>
           </form>
-          <Link href="/auth/inscription" className="text-sm text-blue-600 text-center hover:underline">
+          <div className='flex flex-col'>
+          <Link href="/auth/inscription" className="font-sm text-primary text-center 
+          hover:underline pb-2 pt-2">
             Inscription
           </Link>
-          <Link href="/auth" className="text-sm text-blue-600 text-center hover:underline">
+          <Link href="/auth" className="font-sm text-primary text-center hover:underline">
             Je me souviens de mon mot de passe
           </Link>
+          </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

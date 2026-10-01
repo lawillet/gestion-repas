@@ -23,6 +23,7 @@ const UpdateChild = async ({ params }: PageProps) => {
   }
 
   return (
+    <div className='flex justify-center items-center mt-8'>
     <UpdateChildForm
       childId={child.id}
       defaultValues={{
@@ -31,6 +32,7 @@ const UpdateChild = async ({ params }: PageProps) => {
         schooling: child.schooling as 'primary' | 'preschool',
       }}
     />
+    </div>
   );
 };
 

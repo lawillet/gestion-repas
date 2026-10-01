@@ -5,10 +5,11 @@ import type { CrudRow } from '@/actions/crud'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { fr } from 'date-fns/locale'
-import { format } from 'date-fns'
+import { addDays, format, isSameDay, parseISO } from 'date-fns'
 import { reservationSchema, type ReservationInsert } from '@/schema/reservation.schema'
-import { CalendarOff, CheckCircle2, CreditCard, ReceiptText } from 'lucide-react'
-import { getReservationPeriod } from '@/lib/reservation-period' 
+import { CalendarOff, CheckCircle2, CreditCard, HandPlatter, ReceiptText } from 'lucide-react'
+import { Card, CardContent } from './ui/card'
+import Link from 'next/link'
 type ReservationCalendarsProps = { 
     childId: number; 
     soupPrice: number; 
@@ -49,6 +50,39 @@ const ReservationCalendars = ({
     [disabledDates, reservedDates, soupDates]
  )
  const total = soupDates.length * soupPrice + hotMealDates.length * hotMealPrice
+ const blockedDayGroups = useMemo(() => {
+    const sortedDays = [...blockedDays].sort(
+        (first, second) =>
+            parseISO(first.blocked_date).getTime() - parseISO(second.blocked_date).getTime()
+    )
+
+    return sortedDays.reduce<Array<{
+        id: number
+        start: Date
+        end: Date
+        reason: string | null
+    }>>((groups, day) => {
+        const date = parseISO(day.blocked_date)
+        const previousGroup = groups[groups.length - 1]
+
+        if (
+            previousGroup &&
+            previousGroup.reason === day.reason &&
+            isSameDay(date, addDays(previousGroup.end, 1))
+        ) {
+            previousGroup.end = date
+        } else {
+            groups.push({
+                id: day.id,
+                start: date,
+                end: date,
+                reason: day.reason,
+            })
+        }
+
+        return groups
+    }, [])
+ }, [blockedDays])
  const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => { 
     event.preventDefault(); 
     setErrorMessage(null); 
@@ -126,7 +160,24 @@ const ReservationCalendars = ({
                     periodData={periodData} 
                 />
             </div>
+
             <aside className='rounded-2xl border border-border/70 bg-card p-6 shadow-sm lg:sticky lg:top-24'>
+            <Link href="https://www.c-est-pret.com//scolaire/menus">
+            <div className='flex items-center gap-3 mb-4 hover:bg-accent/50'>
+                
+                <div className='flex size-10 items-center justify-center rounded-xl bg-blue-50 text-primary'>
+                    <HandPlatter className='size-5' />
+                </div>
+                <div>
+                    <h2 className='font-semibold'>
+                        Menu
+                    </h2>
+                    <p className='text-sm text-muted-foreground'>
+                        Redirection vers API
+                    </p>
+                </div>
+            </div>
+            </Link>
             <div className='flex items-center gap-3'>
                 <div className='flex size-10 items-center justify-center rounded-xl bg-blue-50 text-primary'>
                     <ReceiptText className='size-5' />
@@ -140,19 +191,6 @@ const ReservationCalendars = ({
                     </p>
                 </div>
             </div>
-            {blockedDays.length > 0 && 
-            <div className='mt-5 rounded-xl bg-amber-50 p-3 text-sm text-amber-800'>
-                <div className='flex items-center gap-2 font-medium'>
-                    <CalendarOff className='size-4' />
-                        Jours indisponibles
-                </div>
-                <ul className='mt-2 space-y-1 text-amber-700'>
-                    {blockedDays.map(({ id, blocked_date, reason }) => 
-                        <li key={id}>
-                            {format(new Date(blocked_date), 'd MMM', { locale: fr })}{reason ? ` · ${reason}` : ''}
-                        </li>)}
-                </ul>
-            </div>}
             <div className='mt-6 space-y-5'>
                 <div>
                     <p className='text-sm font-medium'>
@@ -206,9 +244,35 @@ const ReservationCalendars = ({
         </Button>
         <p className='mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground'>
             <CheckCircle2 className='size-3.5 text-emerald-600' />
-            Paiement sécurisé par Stripe
+            Paiement sécurisé
         </p>
         </aside>
+            {blockedDays.length > 0 && 
+            <Card>
+                <CardContent>
+            <div className='mt-5 rounded-xl bg-amber-50 p-3 text-sm text-amber-800'>
+                <div className='flex items-center gap-2 font-medium text-xl'>
+                    <CalendarOff className='size-4' />
+                        Jours indisponibles
+                </div>
+                <ul className='mt-2 space-y-1 text-amber-700'>
+                    {blockedDayGroups.map(({ id, start, end, reason }) => {
+                        const startLabel = format(start, 'd MMM', { locale: fr })
+                        const endLabel = format(end, 'd MMM', { locale: fr })
+                        const dateLabel = isSameDay(start, end)
+                            ? startLabel
+                            : `Du ${startLabel} au ${endLabel}`
+
+                        return (
+                            <li key={id}>
+                                {dateLabel}{reason ? ` · ${reason}` : ''}
+                            </li>
+                        )
+                    })}
+                </ul>
+            </div>
+            </CardContent>
+            </Card>}
         </div>
     </form>
 )

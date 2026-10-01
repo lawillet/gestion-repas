@@ -6,13 +6,8 @@ import {
   CircleUser, 
   Menu,
   Moon,
-  Package2,
-  Search, 
   Sun,
-  CreditCardIcon,
   LogOutIcon,
-  SettingsIcon,
-  UserIcon
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -23,12 +18,8 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-  DropdownMenuSubContent
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
@@ -36,14 +27,13 @@ import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
 
 const NAV_LINKS = [
+  { href: '/admin', label: 'Réservation repas'},
   { href: '/admin/addadmin', label: 'Ajouter Admin' },
-  { href: '/admin/alluser', label: 'Utilisateurs' },
   { href: '/admin/disabledday', label: 'Bloquer Réservation' },
   { href: '/admin/price', label: 'Prix' },
   { href: '/admin/reservation', label: 'Réservations' },
   { href: '/admin/schoolingYear', label: 'Année Scolaire' },
-
-
+  { href: '/admin/periods', label: 'Périodes' },
 ];
 
 export const Header = () => {
@@ -59,7 +49,7 @@ export const Header = () => {
 
   return (
     <header className='sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6'>
-      <nav className='hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6'>
+      <nav className='hidden flex-col  gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6'>
         <Link
           href='/admin'
           className='flex items-center gap-2 text-lg font-semibold md:text-base'
@@ -77,7 +67,7 @@ export const Header = () => {
             key={href}
             href={href}
             className={cn(
-              'transition-colors hover:text-foreground text-muted-foreground',
+              'whitespace-nowrap transition-colors hover:text-foreground text-muted-foreground',
               {
                 'text-foreground font-bold': pathname === href,
               }
@@ -114,7 +104,7 @@ export const Header = () => {
               <Link
                 key={href}
                 href={href}
-                className={cn('hover:text-foreground text-muted-foreground', {
+                className={cn('whitespace-nowrap hover:text-foreground text-muted-foreground', {
                   'text-foreground font-bold': pathname === href,
                 })}
               >
@@ -152,9 +142,9 @@ export const Header = () => {
           Sombre
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+        <DropdownMenuItem variant="destructive" onClick={handleLogout} className="whitespace-nowrap">
           <LogOutIcon />
-          Se déconnecter
+          déconnecter
         </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

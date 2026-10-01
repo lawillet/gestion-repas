@@ -1,8 +1,13 @@
-import { createRecord } from "./crud";
+import { createRecord, deleteRecord } from "./crud";
 import { getAllRecords } from "./crud";
 
 
 export async function newYear( firstCommand: string, firstReservation:string, endYear:string) {
+    const existingConfigs = await getAllRecords('config');
+    await Promise.all(
+        existingConfigs.map((config) => deleteRecord('config', config.id))
+    );
+
     await createRecord('config',{
         firstCommand: firstCommand,
         fristReservation: firstReservation,
@@ -10,9 +15,4 @@ export async function newYear( firstCommand: string, firstReservation:string, en
     })
 }
 
-export async function listOfPeriods(){
-    const blockedDates = (await getAllRecords('blocked_day')).map(
-        (row) => new Date(row.blocked_date)
-    )
 
-}

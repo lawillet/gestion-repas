@@ -8,8 +8,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Button } from '@/components/ui/button';
 import {
   Field,
-  FieldDescription,
-  FieldGroup,
   FieldLabel,
   FieldSet,
 } from "@/components/ui/field"
@@ -18,9 +16,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { any, uuid, z } from 'zod';
+import {  z } from 'zod';
 import { createChild } from "@/actions/user";
 import { addChildSchema } from "@/schema/user.schema";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 
 export default function Addchild() {
@@ -51,9 +50,12 @@ export default function Addchild() {
   
   return (
     <div className='flex h-svh items-center justify-center'>
-      <div className='mx-auto grid w-[350px] gap-6'>
-        <h1 className="text-center text-3xl"> Ajouter un enfant au compte</h1>
-        
+      
+        <Card>
+          <CardHeader>
+        <CardTitle className="text-center text-3xl"> Ajouter un enfant au compte</CardTitle>
+        </CardHeader>
+        <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)} className='grid gap-4'>
             <FieldSet>
             <Controller
@@ -142,8 +144,9 @@ export default function Addchild() {
             </Button>
             </FieldSet>
           </form>
-          
-      </div>
+          </CardContent>
+          </Card>
+      
     </div>
   );
 }

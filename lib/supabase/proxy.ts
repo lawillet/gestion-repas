@@ -49,6 +49,10 @@ const pathname = request.nextUrl.pathname;
 
 // Pendant la récupération du mot de passe, seules les routes /auth/password/*
  // sont autorisées.
+if (pathname.startsWith('/auth/password')) {
+  return supabaseResponse;
+}
+
 if (
   isPasswordRecovery &&
   user &&

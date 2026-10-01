@@ -2,6 +2,7 @@ import { getRecordById } from "@/actions/crud";
 import { notFound } from "next/navigation";
 import UpdatePriceForm from './update-price-form';
 
+
 type PageProps = {
   params: Promise<{
     slug: string;
@@ -23,14 +24,16 @@ const UpdatePrice = async({params}: PageProps) => {
   }
 
   return (
-    <UpdatePriceForm
-      mealId={meal.id}
-      defaultValues={{
-        price: meal.price ?? 0,
-        portion: meal.portion as 'primary' | 'preschool',
-        type: meal.type as 'soup' | 'meal',
-      }}
-    />
+     <div className='flex h-svh items-center justify-center'>
+        <UpdatePriceForm
+          mealId={meal.id}
+          defaultValues={{
+            price: meal.price ?? 0,
+            portion: meal.portion as 'primary' | 'preschool',
+            type: meal.type as 'soup' | 'meal',
+          }}
+        />
+      </div>
   );
 }
 

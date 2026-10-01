@@ -1,16 +1,20 @@
 'use client';
 // gestion des erreurs 
-import { authenticate, inscription } from '@/actions/auth';
+import { inscription } from '@/actions/auth';
 import { Button } from '@/components/ui/button';
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
   Field,
-  FieldDescription,
-  FieldGroup,
   FieldLabel,
   FieldSet,
 } from "@/components/ui/field"
 import { Input } from '@/components/ui/input';
-import { FieldError } from '@base-ui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -47,9 +51,13 @@ export default function Inscription() {
 
 
   return (
-    <div className='flex h-svh items-center justify-center'>
-      <div className='mx-auto grid w-[350px] gap-6'>
-        
+    <main className='flex min-h-svh items-center justify-center p-4'>
+      <Card className='w-full max-w-md'>
+        <CardHeader>
+          <CardTitle className='text-2xl'>Créer un compte</CardTitle>
+          <CardDescription>Inscrivez-vous pour gérer les repas de vos enfants.</CardDescription>
+        </CardHeader>
+        <CardContent className='grid gap-6'>
           <form onSubmit={form.handleSubmit(onSignup)} className='grid gap-4'>
             <FieldSet>
             <Controller
@@ -108,13 +116,16 @@ export default function Inscription() {
             
             </FieldSet>
           </form>
-          <Link href="/auth" className="text-sm text-blue-600 text-center hover:underline">
-            Se connecter
-          </Link>
-          <Link href="/auth/password" className="text-sm text-blue-600 text-center hover:underline">
-            J&apos;ai oublié mon mot de passe
-          </Link>
-      </div>
-    </div>
+          <div className='grid gap-2 text-center'>
+            <Link href='/auth' className='font-sm text-primary hover:underline'>
+              Se connecter
+            </Link>
+            <Link href='/auth/password' className='font-sm text-primary hover:underline'>
+              J&apos;ai oublié mon mot de passe
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </main>
   );
 }

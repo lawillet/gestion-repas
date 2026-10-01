@@ -26,7 +26,7 @@ export default async function RootLayout({
                 console.log('error fetching user data', error)
                 return;
             }
-            //console.log(data.type);
+            
             // check if user
             if( data.type === ADMIN ) return redirect('/admin')
         }

@@ -4,12 +4,15 @@
 import { ADMIN, USER } from "@/constants/constants";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { cookies } from 'next/headers';
 import { ReactNode } from "react";
 
 export default async function AuthLayout ({children}: Readonly<{
   children : ReactNode  
 }>) {
     const supabase = await createClient();
+    const cookieStore = await cookies();
+    const isPasswordRecovery = cookieStore.get('password_recovery')?.value === 'true';
     
     const {data: authData} = await supabase.auth.getUser();
 
@@ -21,6 +24,10 @@ export default async function AuthLayout ({children}: Readonly<{
         if (error || !data ){
             console.log('error fetching user data', error)
             return;
+        }
+
+        if (isPasswordRecovery) {
+            return <>{children}</>;
         }
         
         if(data.type === ADMIN) return redirect('/admin')

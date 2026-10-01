@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono, Inter } from "next/font/google"
+import { Geist_Mono, Inter } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Metadata } from "next";
 import { Toaster } from "@/components/ui/sonner";
 import { createClient } from "@/lib/supabase/server";
+
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'})
 
@@ -16,19 +17,36 @@ const fontMono = Geist_Mono({
 
 
 
+
 export const metadata: Metadata = {
   title: "Gestion repas",
   description: "réserver et payer les repas de votre enfant"
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const supabase = await createClient();
+  const {data: authData} = await supabase.auth.getUser();
+
+  if (authData?.user) {
+    const {data, error } = await supabase.from('users')
+      .select('*')
+      .eq('id', authData.user.id)
+      .single();
+    if (error || !data ){
+      console.log('error fetching user data', error)
+      return;
+    }
+    
+
+    
+  }
   return (
     <html
-      lang="en"
+      lang="fr"
       suppressHydrationWarning
       className={cn("antialiased", fontMono.variable, "font-sans", inter.variable)}
     >

@@ -1,13 +1,15 @@
 'use client'
 
 import { DatePicker } from '@/components/datePicker'
-import {DatePickerWithRange} from '@/components/datePickerWithRange'
+
 import { Button } from '@/components/ui/button'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 import { newYear } from '@/actions/newYear' 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 
 const SchoolingYear = () => {
   const [lockDate, setLockDate] = useState<Date | undefined>()
@@ -60,15 +62,20 @@ const SchoolingYear = () => {
   return (
     <main className='flex min-h-screen flex-col items-center justify-center p-24'>
       <div className='w-full max-w-2xl'>
+        <Card>
+          <CardHeader>
+            <CardTitle className='text-2xl'>Création année scolaire et réservations</CardTitle>
+          </CardHeader>
+          <CardContent>
         {successMessage && (
           <div className='mb-6 p-4 bg-green-100 text-green-800 rounded-md'>
             {successMessage}
           </div>
         )}
-
+        <Separator/>
         <section className='mb-8'>
           <p className='mb-4'>
-            Choisis la date de commande aprés cette date les utilisateurs ne pourront plus modifier leur commande.
+            Choisis la date de commande aprés cette date les utilisateurs ne pourront plus modifier leur commande. Pour un cycle de 14 jours.
           </p>
           <DatePicker value={lockDate} onChange={handleLockDateChange} />
           {lockDate && (
@@ -92,8 +99,8 @@ const SchoolingYear = () => {
 
         <section className='mb-8'>
           <p className='mb-4'>
-            Choissis la premiére période de réservation de 14 jours,
-            les autres périodes seront automatiquement calculées par le système.
+            Choissis le premier jour de réservation,
+            les périodes seront ensuite automatiquement calculées par le système.
           </p>
           <DatePicker value={reservationPeriod} onChange={handleReservationPeriodChange} />
           {reservationPeriod && (
@@ -108,7 +115,8 @@ const SchoolingYear = () => {
             Enregistrer les paramètres
           </Button>
         </div>
-        
+        </CardContent>
+        </Card>
       </div>
     </main>
   )

@@ -12,6 +12,8 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { updateChild } from "@/actions/user"
 import { updateChildSchema } from "@/schema/user.schema"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 
 type UpdateChildFormProps = {
   childId: number
@@ -41,11 +43,19 @@ export default function UpdateChildForm({ childId, defaultValues }: UpdateChildF
 
   return (
     <div className="w-full max-w-2xl">
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-medium text-lg text-center">
+            Votre enfant
+          </CardTitle>
+          <CardDescription className="text-muted-foreground text-sm text-center">
+            Mettre à jour les informations de votre enfant
+          </CardDescription>
+        </CardHeader>
+        <Separator/>
+        <CardContent>
       <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-        <div>
-          <h3 className="font-medium text-lg">Profil</h3>
-          <p className="text-muted-foreground text-sm">Mettre à jour les informations de votre enfant</p>
-        </div>
+
         <Controller
           control={form.control}
           name="name"
@@ -101,6 +111,8 @@ export default function UpdateChildForm({ childId, defaultValues }: UpdateChildF
           <Button type="button" variant="outline" onClick={() => router.back()} disabled={isUpdating}>Annuler</Button>
         </div>
       </form>
+      </CardContent>
+      </Card>
     </div>
   )
 }

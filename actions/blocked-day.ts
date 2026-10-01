@@ -1,12 +1,50 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { ADMIN } from "@/constants/constants";
+import { revalidatePath } from "next/cache";
 import { 
   blockedDaysSchema,
   blockedDaysCreateSchema
  } from "@/schema/blocked-day.schema";
 import { createRecord } from "./crud";
 import { getRecordById } from "./crud";
+
+export async function unblockDate(formData: FormData) {
+  const blockedDayId = formData.get("blockedDayId");
+
+  if (typeof blockedDayId !== "string" || !blockedDayId) {
+    return;
+  }
+
+  const id = Number(blockedDayId);
+  if (!Number.isInteger(id) || id < 1) {
+    return;
+  }
+
+  const supabase = await createClient();
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData.user) {
+    throw new Error("Non autorisé.");
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("users")
+    .select("type")
+    .eq("id", authData.user.id)
+    .single();
+
+  if (profileError || profile.type !== ADMIN) {
+    throw new Error("Non autorisé.");
+  }
+
+  const { error } = await supabase.from("blocked_day").delete().eq("id", id);
+  if (error) {
+    throw error;
+  }
+
+  revalidatePath("/admin/disabledday");
+}
 
 
 export async function importBlockedDays(days: unknown) {

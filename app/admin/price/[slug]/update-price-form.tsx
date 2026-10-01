@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
-import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel } from "@/components/ui/field"
@@ -12,6 +11,8 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { updatePrice } from "@/actions/admin"
 import { updatePriceSchema, type UpdatePriceFormValues } from "@/schema/admin.schema"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { UtensilsCrossed } from "lucide-react"
 
 type UpdatePriceFormProps = {
   mealId: number
@@ -41,11 +42,14 @@ export default function UpdatePriceForm({ mealId, defaultValues }: UpdatePriceFo
 
   return (
     <div className="w-full max-w-2xl">
+      <Card>
+        <CardHeader>
+          <UtensilsCrossed className="w-12 h-12"/>
+          <CardTitle className="font-medium text-lg">Changer le prix des repas</CardTitle>
+          <CardDescription>Mettre à jour les prix des repas</CardDescription>
+        </CardHeader>
+        <CardContent>
       <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-        <div>
-          <h3 className="font-medium text-lg">Profil</h3>
-          <p className="text-muted-foreground text-sm">Mettre à jour les informations de votre enfant</p>
-        </div>
         <Controller
           control={form.control}
           name="price"
@@ -151,6 +155,8 @@ export default function UpdatePriceForm({ mealId, defaultValues }: UpdatePriceFo
           </Button>
         </div>
       </form>
+      </CardContent>
+      </Card>
     </div>
   )
 }

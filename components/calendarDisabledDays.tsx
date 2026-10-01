@@ -5,10 +5,7 @@ import { addDays, format, isAfter, isBefore, isSameDay, startOfDay } from 'date-
 import { Button } from '@/components/ui/button';
 import {
   Field,
-  FieldDescription,
-  FieldGroup,
   FieldLabel,
-  FieldSet,
 } from "@/components/ui/field"
 import { Input } from '@/components/ui/input';
 import { blockedDays } from '@/actions/blocked-day';
@@ -22,13 +19,14 @@ import {
     CYCLE_LENGTH_DAYS,
 } from "@/constants/constants";
 
+
 interface CalendarComponentProps {
     titre: string;
     disabledDates: Date[];
     disabledList: object; 
 }
 
-const CalendarComponent = ({ titre, disabledDates, disabledList }: CalendarComponentProps) => {
+const CalendarComponent = ({ titre, disabledDates }: CalendarComponentProps) => {
     const [dates, setDates] = useState<Date[]>([]);
     const [reasons, setReasons] = useState<string[]>([]);
     const [submitError, setSubmitError] = useState<string | null>(null);
@@ -63,9 +61,6 @@ const CalendarComponent = ({ titre, disabledDates, disabledList }: CalendarCompo
     }, [])
 
     const minSelectableDate = addDays(currentCycleStart, (CYCLE_LENGTH_DAYS - 1));
-    console.log(minSelectableDate)
-    //console.log(index)
-    //console.log(minSelectableDate);
     const dayOfWeekIsDisabled = (date: Date) => [0, 6, 3].includes(date.getDay());
     const isOutsideAllowedRange = (date: Date) => {
         const selectedDay = startOfDay(date);
@@ -90,10 +85,10 @@ const CalendarComponent = ({ titre, disabledDates, disabledList }: CalendarCompo
         router.refresh();
         //setValidationMessage(true);
     }
-   
+    
     return (
         <div className='flex-column items-center justify-center'>
-            <h1 className='text-3xl text-center'>{titre}</h1>
+            <h1 className='text-4xl text-center pb-4 pt-4'>{titre}</h1>
 
             <Calendar
                 mode="multiple"
@@ -101,7 +96,7 @@ const CalendarComponent = ({ titre, disabledDates, disabledList }: CalendarCompo
                 startMonth={CALENDAR_START_MONTH}
                 endMonth={CALENDAR_END_MONTH}
                 onSelect={(nextDates) => setDates(nextDates ?? [])}
-                className="rounded-lg border"
+                className="rounded-lg border [--cell-size:3rem]"
                 captionLayout="dropdown"
                 timeZone={timeZone}
                 disabled={(date) =>
@@ -116,7 +111,7 @@ const CalendarComponent = ({ titre, disabledDates, disabledList }: CalendarCompo
               <li>Pas de dates sélectionnées</li> :
               dates.map((date, index) => (
                 <li key={index}>
-                    {format(date, 'PPP')} jour désactiver 
+                    {format(date, 'PPP',{ locale: fr })} jour désactiver 
                     <Field>
                         <FieldLabel htmlFor='reason'></FieldLabel>
                         <Input 

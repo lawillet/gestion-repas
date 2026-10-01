@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/server'; 
 import { redirect } from 'next/navigation'; 
 import Link from 'next/link'; 
-import { CalendarDays, LockKeyhole, Users } from 'lucide-react'
+import { List, LockKeyhole, UserPlus } from 'lucide-react'
 export async function logout() { 
     const supabase = await createClient(); 
     await supabase.auth.signOut(); 
@@ -18,7 +18,7 @@ const Admin = async () => {
         <p className='text-sm font-medium text-emerald-700'>Administration</p>
         <div className='mt-1 flex flex-col justify-between gap-4 sm:flex-row sm:items-end'>
             <div>
-                <h1 className='text-3xl font-semibold tracking-tight sm:text-4xl'>Bonjour, administrateur</h1>
+                <h1 className='text-3xl font-semibold tracking-tight sm:text-4xl'>Bienvenu</h1>
                 <p className='mt-2 text-muted-foreground'>{user?.user?.email}</p>
             </div>
             <Button nativeButton={false} render={<Link href='/admin/reservation' />}>
@@ -29,11 +29,22 @@ const Admin = async () => {
             <Card>
                 <CardContent className='flex gap-4 p-5'>
                     <div className='rounded-xl bg-blue-50 p-3 text-primary'>
-                        <CalendarDays />
+                        <UserPlus />
                     </div>
                     <div>
                         <p className='text-sm text-muted-foreground'>Aujourd’hui</p>
-                        <p className='font-semibold'>Réservations du jour</p>
+                        <Link href='/admin/addadmin' className='font-semibold hover:underline'>Ajouter Administrateur</Link>
+                    </div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardContent className='flex gap-4 p-5'>
+                    <div className='rounded-xl bg-blue-50 p-3 text-primary'>
+                        <List />
+                    </div>
+                    <div>
+                        <p className='text-sm text-muted-foreground'>Planification</p>
+                        <Link href='/admin/periods' className='font-semibold hover:underline'>Liste des périodes</Link>
                     </div>
                 </CardContent>
             </Card>
@@ -45,19 +56,6 @@ const Admin = async () => {
                     <div>
                         <p className='text-sm text-muted-foreground'>Disponibilités</p>
                         <Link href='/admin/disabledday' className='font-semibold hover:underline'>Gérer les jours bloqués</Link>
-                    </div>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardContent className='flex gap-4 p-5'>
-                    <div className='rounded-xl bg-emerald-50 p-3 text-emerald-700'>
-                        <Users />
-                    </div>
-                    <div>
-                        <p className='text-sm text-muted-foreground'>Comptes</p>
-                        <Link href='/admin/alluser' className='font-semibold hover:underline'>
-                            Gérer les utilisateurs
-                        </Link>
                     </div>
                 </CardContent>
             </Card>

@@ -2,6 +2,7 @@
 
 import { Database } from '@/database.types';
 import { createClient } from '@/lib/supabase/server';
+import { unstable_rethrow } from 'next/navigation';
 
 export const createChild = async (name: string, surname: string, schooling: string) => {
   try {
@@ -62,9 +63,10 @@ export const getChildren = async () => {
       console.error('getChildren error:', error);
       throw error;
     }
-    console.log('getChildren data:', data);
+    
     return data;
   } catch (error) {
+    unstable_rethrow(error);
     console.error('getChildren error:', error);
     throw error;
   }

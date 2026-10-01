@@ -32,7 +32,7 @@ export const columns = columnHelper.columns([
     id: "actions",
     header: "Action",
     cell: ({ row }) => (
-      <Button key={row.original.id} nativeButton={false} variant="outline" size="sm" render={<Link href={`/admin/price/${row.original.id}`} />}>
+      <Button key={row.original.id} nativeButton={false}  size="sm" render={<Link href={`/admin/price/${row.original.id}`} />}>
         Modifier
       </Button>
     ),
