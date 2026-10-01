@@ -45,7 +45,10 @@ const User = async () => {
                         </Link>
                     </Card>
                     <Card>
-                        <Link href="https://www.c-est-pret.com//scolaire/menus" className='hover:underline'>
+                        <Link href="https://www.c-est-pret.com//scolaire/menus" 
+                            className='hover:underline'
+                            target='_blank'
+                        >
                         <CardContent className='flex items-center gap-4 p-5'>
                             <div className='rounded-xl bg-slate-100 p-3 text-slate-700'>
                                 <HandPlatter />

@@ -20,9 +20,9 @@ async function getConfigValues() {
       const config = await getAllRecords('config');
       const currentConfig = config[0];
 
-      if (!currentConfig) {
+      /*if (!currentConfig) {
         throw new Error('Aucune configuration trouvée dans la table config.');
-      }
+      }*/
 
       return {
         endYear: currentConfig.endYear,

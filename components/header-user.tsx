@@ -20,11 +20,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
 import { createClient } from '@/lib/supabase/client';
-
+import  Image  from 'next/image'
 const NAV_LINKS = [
   { href: '/user', label: 'Réserver' },
   { href: '/user/addChild', label: 'Ajouter un enfant' },
@@ -77,6 +77,34 @@ export const Header = () => {
             </Button>
           }
         />
+
+        <SheetContent side='left'>
+          <nav className='grid gap-6 text-lg font-medium'>
+            <Link
+              href='/'
+              className='flex items-center gap-2 text-lg font-semibold'
+            >
+            <Image
+              src='/Cerfontaine_logo.svg'
+              alt='Le logo de la ville de Cerfontaine'
+              width={50}
+              height={50}
+              className='h-20 w-20 object-contain pt-4'
+            />
+            </Link>
+            {NAV_LINKS.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className={cn('whitespace-nowrap hover:text-foreground text-muted-foreground', {
+                  'text-foreground font-bold': pathname === href,
+                })}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+        </SheetContent>
        
       </Sheet>
       <div className='flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4'>

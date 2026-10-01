@@ -162,7 +162,7 @@ const ReservationCalendars = ({
             </div>
 
             <aside className='rounded-2xl border border-border/70 bg-card p-6 shadow-sm lg:sticky lg:top-24'>
-            <Link href="https://www.c-est-pret.com//scolaire/menus">
+            <Link href="https://www.c-est-pret.com//scolaire/menus" target='_blank'>
             <div className='flex items-center gap-3 mb-4 hover:bg-accent/50'>
                 
                 <div className='flex size-10 items-center justify-center rounded-xl bg-blue-50 text-primary'>
